@@ -1,5 +1,7 @@
 import { SelectionManager } from "./SelectionManager.js";
 import { GridDimensions } from "./GridDimensions.js";
+import { seedSpreadsheetData } from "./seed.js";
+// import { seedSpreadsheetData } from "./seed.js";
 
 export class ExcelGrid {
     // Connect our decoupled structural manager entities
@@ -17,13 +19,23 @@ export class ExcelGrid {
     private viewportWidth = 0;
     private viewportHeight = 0;
 
-    private isResizing = false;
+    private isColResizing = false;
     private resizeTargetCol: number | null = null;
-    private resizeStartMouseX = 0;
-    private resizeStartWidth = 0;
+    private colResizeStartMouseX = 0;
+    private colResizeStartWidth = 0;
+
+    private isRowResizing = false;
+    private resizeTargetRow: number | null = null;
+    private rowResizeStartMouseY = 0;
+    private rowResizeStartHeight = 0;
 
     constructor() {
         this.init();
+
+        seedSpreadsheetData(this.dimensions);
+
+        // Force a fresh virtual render path to display the newly loaded records instantly
+        this.drawGrid();
     }
 
     private init(): void {
@@ -45,24 +57,47 @@ export class ExcelGrid {
         const mouseY = e.clientY - rect.top + this.scrollPane.scrollTop;
 
         // Only allow resizing if clicking inside the top column header row
-        if (mouseY > this.dimensions.COL_HEADER_HEIGHT || mouseX < this.dimensions.ROW_HEADER_WIDTH) return;
+        if (mouseY > this.dimensions.COL_HEADER_HEIGHT && mouseX < this.dimensions.ROW_HEADER_WIDTH) {
 
-        // Loop through visible columns to see if we clicked near a border (within 5 pixels)
-        let currentX = this.dimensions.ROW_HEADER_WIDTH;
-        for (let c = 1; c <= this.dimensions.TOTAL_COLS; c++) {
-            currentX += this.dimensions.getColWidth(c);
 
-            if (Math.abs(mouseX - currentX) <= 5) {
-                this.isResizing = true;
-                this.resizeTargetCol = c;
-                this.resizeStartMouseX = e.clientX;
-                this.resizeStartWidth = this.dimensions.getColWidth(c);
+            const rowCandidate = this.dimensions.getRowIndexAtY(mouseY);
+            const rowBottomY = this.dimensions.getRowYPosition(rowCandidate) + this.dimensions.getRowHeight(rowCandidate);
+            if (Math.abs(mouseY - rowBottomY) <= 5) {
+                this.isRowResizing = true;
+                this.resizeTargetRow = rowCandidate;
+                this.rowResizeStartMouseY = e.clientY;
+                this.rowResizeStartHeight = this.dimensions.getRowHeight(rowCandidate);
 
                 this.commitInputChanges();
                 e.preventDefault();
                 return;
             }
+
+
+        } else if (mouseY < this.dimensions.COL_HEADER_HEIGHT && mouseX > this.dimensions.ROW_HEADER_WIDTH) {
+
+
+            // Loop through visible columns to see if we clicked near a border (within 5 pixels)
+            let currentX = this.dimensions.ROW_HEADER_WIDTH;
+            for (let c = 1; c <= this.dimensions.TOTAL_COLS; c++) {
+                currentX += this.dimensions.getColWidth(c);
+
+                if (Math.abs(mouseX - currentX) <= 5) {
+                    this.isColResizing = true;
+                    this.resizeTargetCol = c;
+                    this.colResizeStartMouseX = e.clientX;
+                    this.colResizeStartWidth = this.dimensions.getColWidth(c);
+
+                    this.commitInputChanges();
+                    e.preventDefault();
+                    return;
+                }
+            }
+
         }
+
+
+
     }
 
     private handleMouseMove(e: MouseEvent): void {
@@ -70,43 +105,62 @@ export class ExcelGrid {
         const mouseX = e.clientX - rect.left + this.scrollPane.scrollLeft;
         const mouseY = e.clientY - rect.top + this.scrollPane.scrollTop;
 
-        // 1. IF RESIZING IS ACTIVE: Calculate the delta and live-update the width
-        if (this.isResizing && this.resizeTargetCol !== null) {
-            const deltaX = e.clientX - this.resizeStartMouseX;
-            const newWidth = this.resizeStartWidth + deltaX;
+        // 1. ACTIVE COLUMN RESIZING
+        if (this.isColResizing && this.resizeTargetCol !== null) {
+            const deltaX = e.clientX - this.colResizeStartMouseX;
+            const newWidth = this.colResizeStartWidth + deltaX;
 
             this.dimensions.setColWidth(this.resizeTargetCol, newWidth);
+            this.scrollContent.style.width = `${this.dimensions.getTotalGridWidth()}px`;
 
-            // Re-inflate the phantom scroll content width dynamically as column expands
-            const totalWidth = this.dimensions.getTotalGridWidth();
-            this.scrollContent.style.width = `${totalWidth}px`;
-
-            // Repaint the updated frame cleanly
             requestAnimationFrame(() => this.drawGrid());
             return;
         }
 
-        // 2. IF NOT RESIZING: Change mouse cursor icon when floating over a border edge
-        if (mouseY <= this.dimensions.COL_HEADER_HEIGHT && mouseX >= this.dimensions.ROW_HEADER_WIDTH) {
-            let currentX = this.dimensions.ROW_HEADER_WIDTH;
-            let nearBorder = false;
+        // 2. ACTIVE ROW RESIZING
+        if (this.isRowResizing && this.resizeTargetRow !== null) {
+            const deltaY = e.clientY - this.rowResizeStartMouseY;
+            const newHeight = this.rowResizeStartHeight + deltaY;
 
+            this.dimensions.setRowHeight(this.resizeTargetRow, newHeight);
+            this.scrollContent.style.height = `${this.dimensions.getTotalGridHeight()}px`;
+
+            requestAnimationFrame(() => this.drawGrid());
+            return;
+        }
+
+        // 3. CURSOR HOVER ICON UPDATE (LOOP-FREE LOOKUPS)
+        let cursorStyle = 'default';
+
+        if (mouseY <= this.dimensions.COL_HEADER_HEIGHT && mouseX >= this.dimensions.ROW_HEADER_WIDTH) {
+            // Check Column Edge Hovers
+            let currentX = this.dimensions.ROW_HEADER_WIDTH;
             for (let c = 1; c <= this.dimensions.TOTAL_COLS; c++) {
                 currentX += this.dimensions.getColWidth(c);
                 if (Math.abs(mouseX - currentX) <= 5) {
-                    nearBorder = true;
+                    cursorStyle = 'col-resize';
                     break;
                 }
             }
-            this.scrollPane.style.cursor = nearBorder ? 'col-resize' : 'default';
-        } else {
-            this.scrollPane.style.cursor = 'default';
+        } else if (mouseY > this.dimensions.COL_HEADER_HEIGHT && mouseX < this.dimensions.ROW_HEADER_WIDTH) {
+            // Check Row Edge Hovers using Binary Search instead of looping 100,000 times!
+            const rowCandidate = this.dimensions.getRowIndexAtY(mouseY);
+            const rowBottomY = this.dimensions.getRowYPosition(rowCandidate) + this.dimensions.getRowHeight(rowCandidate);
+
+            if (Math.abs(mouseY - rowBottomY) <= 5) {
+                cursorStyle = 'row-resize';
+            }
         }
+
+        this.scrollPane.style.cursor = cursorStyle;
     }
 
     private handleMouseUp(): void {
-        this.isResizing = false;
+        this.isColResizing = false;
         this.resizeTargetCol = null;
+
+        this.isRowResizing = false;
+        this.resizeTargetRow = null;
     }
 
 
@@ -116,7 +170,7 @@ export class ExcelGrid {
 
         // DYNAMIC WIDTH ACCUMULATION
         const totalWidth = this.dimensions.getTotalGridWidth();
-        const totalHeight = this.dimensions.COL_HEADER_HEIGHT + (this.dimensions.TOTAL_ROWS * this.dimensions.ROW_HEIGHT);
+        const totalHeight = this.dimensions.getTotalGridHeight();
 
         const dpr = window.devicePixelRatio || 1;
         this.canvas.width = this.viewportWidth * dpr;
@@ -138,15 +192,18 @@ export class ExcelGrid {
 
         this.ctx.clearRect(0, 0, this.viewportWidth, this.viewportHeight);
 
-        const startRow = Math.max(1, Math.floor((scrollTop - this.dimensions.COL_HEADER_HEIGHT) / this.dimensions.ROW_HEIGHT));
-        const endRow = Math.min(this.dimensions.TOTAL_ROWS, startRow + Math.ceil(this.viewportHeight / this.dimensions.ROW_HEIGHT) + 1);
+        const startRow = this.dimensions.getRowIndexAtY(scrollTop);
+        const bottomY = scrollTop + this.viewportHeight;
+        const endRow = this.dimensions.getRowIndexAtY(bottomY);
 
         this.ctx.font = "13px Arial";
         this.ctx.textBaseline = "middle";
 
         // 1. CELLS DRAW LOOP
         for (let r = startRow; r <= endRow; r++) {
-            const cellY = this.dimensions.COL_HEADER_HEIGHT + (r - 1) * this.dimensions.ROW_HEIGHT - scrollTop;
+            const rowHeight = this.dimensions.getRowHeight(r);
+            // FIX: Calculate the real coordinate by reading the dynamic Y cache positions
+            const cellY = this.dimensions.getRowYPosition(r) - scrollTop;
 
             let cellX = this.dimensions.ROW_HEADER_WIDTH - scrollLeft;
             for (let c = 1; c <= this.dimensions.TOTAL_COLS; c++) {
@@ -156,23 +213,23 @@ export class ExcelGrid {
                 if (cellX + colWidth >= this.dimensions.ROW_HEADER_WIDTH && cellX <= this.viewportWidth) {
                     if (this.selection.isSelected(r, c)) {
                         this.ctx.fillStyle = '#e8f0fe';
-                        this.ctx.fillRect(cellX, cellY, colWidth, this.dimensions.ROW_HEIGHT);
+                        this.ctx.fillRect(cellX, cellY, colWidth, rowHeight);
                     }
 
                     this.ctx.strokeStyle = "#e0e0e0";
                     this.ctx.lineWidth = 1;
-                    this.ctx.strokeRect(cellX, cellY, colWidth, this.dimensions.ROW_HEIGHT);
+                    this.ctx.strokeRect(cellX, cellY, colWidth, rowHeight);
 
                     const val = this.dimensions.getCellData(r, c);
                     if (val != "") {
                         this.ctx.save();
                         this.ctx.beginPath();
-                        this.ctx.rect(cellX + 1, cellY, colWidth - 2, this.dimensions.ROW_HEIGHT);
+                        this.ctx.rect(cellX + 1, cellY, colWidth - 2, rowHeight);
                         this.ctx.clip();
 
                         this.ctx.fillStyle = "#333333";
                         this.ctx.textAlign = "left";
-                        this.ctx.fillText(val, cellX + 6, cellY + (this.dimensions.ROW_HEIGHT / 2));
+                        this.ctx.fillText(val, cellX + 6, cellY + (rowHeight / 2));
 
                         this.ctx.restore();
                     }
@@ -207,18 +264,20 @@ export class ExcelGrid {
         this.ctx.fillStyle = "#f1f3f4";
         this.ctx.fillRect(0, this.dimensions.COL_HEADER_HEIGHT, this.dimensions.ROW_HEADER_WIDTH, this.viewportHeight);
         for (let r = startRow; r <= endRow; r++) {
-            const headerY = this.dimensions.COL_HEADER_HEIGHT + (r - 1) * this.dimensions.ROW_HEIGHT - scrollTop;
-            if (headerY + this.dimensions.ROW_HEIGHT < this.dimensions.COL_HEADER_HEIGHT) continue;
+            const rowHeight = this.dimensions.getRowHeight(r);
+            // FIX: Calculate the dynamic dynamic row y coordinate here too
+            const headerY = this.dimensions.getRowYPosition(r) - scrollTop;
+            if (headerY + rowHeight < this.dimensions.COL_HEADER_HEIGHT) continue;
 
             const isCurrentRow = (this.selection.activeRow === r);
             this.ctx.fillStyle = isCurrentRow ? "#dadce0" : "#f1f3f4";
-            this.ctx.fillRect(0, headerY, this.dimensions.ROW_HEADER_WIDTH, this.dimensions.ROW_HEIGHT);
+            this.ctx.fillRect(0, headerY, this.dimensions.ROW_HEADER_WIDTH, rowHeight);
 
             this.ctx.strokeStyle = "#ccc";
-            this.ctx.strokeRect(0, headerY, this.dimensions.ROW_HEADER_WIDTH, this.dimensions.ROW_HEIGHT);
+            this.ctx.strokeRect(0, headerY, this.dimensions.ROW_HEADER_WIDTH, rowHeight);
             this.ctx.fillStyle = isCurrentRow ? "#1a73e8" : "#666";
             this.ctx.textAlign = "center";
-            this.ctx.fillText(r.toString(), this.dimensions.ROW_HEADER_WIDTH / 2, headerY + (this.dimensions.ROW_HEIGHT / 2));
+            this.ctx.fillText(r.toString(), this.dimensions.ROW_HEADER_WIDTH / 2, headerY + (rowHeight / 2));
         }
 
         // 4. CORNER ANCHOR BLOCK
@@ -227,6 +286,7 @@ export class ExcelGrid {
         this.ctx.strokeStyle = "#bbb";
         this.ctx.strokeRect(0, 0, this.dimensions.ROW_HEADER_WIDTH, this.dimensions.COL_HEADER_HEIGHT);
     }
+
 
 
     private handleScroll(): void {
@@ -238,7 +298,8 @@ export class ExcelGrid {
 
     private handleMouseClick(e: MouseEvent): void {
         // If we are currently resizing a column, block normal cell clicks
-        if (this.isResizing) return;
+        if (this.isColResizing) return;
+        if (this.isRowResizing) return;
 
         const rect = this.container.getBoundingClientRect();
         const clickX = e.clientX - rect.left + this.scrollPane.scrollLeft;
@@ -250,7 +311,7 @@ export class ExcelGrid {
         }
 
         // Find Row target
-        const targetRow = Math.floor((clickY - this.dimensions.COL_HEADER_HEIGHT) / this.dimensions.ROW_HEIGHT) + 1;
+        const targetRow = this.dimensions.getRowIndexAtY(clickY);
 
         // Find Column target by accumulating active widths dynamically
         let targetCol = 1;
@@ -272,23 +333,28 @@ export class ExcelGrid {
 
     private positionInputOverlay(row: number, col: number): void {
         const colWidth = this.dimensions.getColWidth(col);
+        const rowHeight = this.dimensions.getRowHeight(row); // Get dynamic height
+
         const inputX = this.dimensions.getColXPosition(col) - this.scrollPane.scrollLeft;
-        const inputY = this.dimensions.COL_HEADER_HEIGHT + (row - 1) * this.dimensions.ROW_HEIGHT - this.scrollPane.scrollTop;
+        const inputY = this.dimensions.getRowYPosition(row) - this.scrollPane.scrollTop;
 
         this.cellInput.style.left = `${inputX}px`;
         this.cellInput.style.top = `${inputY}px`;
         this.cellInput.style.width = `${colWidth + 1}px`;
-        this.cellInput.style.height = `${this.dimensions.ROW_HEIGHT + 1}px`;
+        this.cellInput.style.height = `${rowHeight + 1}px`;
 
         this.cellInput.value = this.dimensions.getCellData(row, col);
         this.cellInput.style.display = 'block';
         this.cellInput.focus();
     }
 
+
     private ensureCellIsVisible(row: number, col: number): void {
         const colWidth = this.dimensions.getColWidth(col);
+        const rowHeight = this.dimensions.getRowHeight(row); // Get dynamic height
+
         const cellLeft = this.dimensions.getColXPosition(col);
-        const cellTop = this.dimensions.COL_HEADER_HEIGHT + (row - 1) * this.dimensions.ROW_HEIGHT;
+        const cellTop = this.dimensions.getRowYPosition(row);
 
         let newScrollLeft = this.scrollPane.scrollLeft;
         let newScrollTop = this.scrollPane.scrollTop;
@@ -301,13 +367,14 @@ export class ExcelGrid {
 
         if (cellTop < this.scrollPane.scrollTop + this.dimensions.COL_HEADER_HEIGHT) {
             newScrollTop = cellTop - this.dimensions.COL_HEADER_HEIGHT;
-        } else if (cellTop + this.dimensions.ROW_HEIGHT > this.scrollPane.scrollTop + this.viewportHeight) {
-            newScrollTop = cellTop + this.dimensions.ROW_HEIGHT - this.viewportHeight;
+        } else if (cellTop + rowHeight > this.scrollPane.scrollTop + this.viewportHeight) {
+            newScrollTop = cellTop + rowHeight - this.viewportHeight;
         }
 
         if (newScrollLeft !== this.scrollPane.scrollLeft) this.scrollPane.scrollLeft = newScrollLeft;
         if (newScrollTop !== this.scrollPane.scrollTop) this.scrollPane.scrollTop = newScrollTop;
     }
+
 
 
     private commitInputChanges(): void {

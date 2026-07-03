@@ -5,59 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>High-Performance Editable Canvas Grid</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+    <link rel="stylesheet" href="style.css";
 
-        body {
-            background-color: #f4f5f7;
-        }
-
-        .grid-container {
-            position: relative;
-            height: 100vh;
-            width: 100vw;
-            border: 1px solid #bbb;
-            background: white;
-        }
-
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .scroll-pane {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            z-index: 2;
-        }
-
-        .scroll-content {
-            pointer-events: none;
-        }
-
-        #cellInput {
-            position: absolute;
-            display: none;
-            z-index: 10;
-            border: 2px solid #1a73e8;
-            outline: none;
-            font-size: 13px;
-            padding: 0 5px;
-            background: white;
-        }
-    </style>
 </head>
 
 <body>
