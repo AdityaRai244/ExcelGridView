@@ -1,3 +1,5 @@
+// MAEKS CELLS ACTIVE AND TELLS WHICH CELL IS CURRENTLY ACTIVE.
+
 export class SelectionManager {
 
     public activeRow: number | null = null;

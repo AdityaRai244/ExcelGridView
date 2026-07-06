@@ -1,7 +1,6 @@
 import { Cell } from "./Cell.js";
 
 export class GridDimensions {
-    // Sizing Configurations
     public readonly TOTAL_ROWS: number = 100000;
     public readonly TOTAL_COLS: number = 500;
     public readonly ROW_HEADER_WIDTH: number = 50;
@@ -19,16 +18,16 @@ export class GridDimensions {
     private cachedTotalGridHeight: number;
 
     constructor() {
-        // Pre-calculate baseline totals to avoid loops later
         this.cachedTotalGridWidth = this.ROW_HEADER_WIDTH + (this.TOTAL_COLS * this.DEFAULT_COL_WIDTH);
         this.cachedTotalGridHeight = this.COL_HEADER_HEIGHT + (this.TOTAL_ROWS * this.DEFAULT_ROW_HEIGHT);
     }
 
-
+    // GETS THE WIDTH OF THE COLUMN IN THE GRID
     public getColWidth(col: number): number {
         return this.colStore.get(col) ?? this.DEFAULT_COL_WIDTH;
     }
 
+    // SETS THE WIDTH OF THE COLUMN IN THE GRID
     public setColWidth(col: number, value: number): void {
         const safeWidth = Math.min(Math.max(50, value), 500);
         const oldWidth = this.getColWidth(col);
@@ -36,11 +35,12 @@ export class GridDimensions {
         this.cachedTotalGridWidth += (safeWidth - oldWidth);
     }
 
+    // GETS THE TOTAL WIDTH OF THE GRID
     public getTotalGridWidth(): number {
-        console.log(this.cachedTotalGridWidth);
         return this.cachedTotalGridWidth;
     }
 
+    // GETS THE X POSITION OF THE COLUMN IN THE GRID
     public getColXPosition(targetCol: number): number {
         let x = this.ROW_HEADER_WIDTH;
         for (let c = 1; c < targetCol; c++) {
@@ -49,14 +49,12 @@ export class GridDimensions {
         return x;
     }
 
-
-
-
-
+    // GETS THE HEIGHT OF THE ROW IN THE GRID
     public getRowHeight(row: number): number {
         return this.rowStore.get(row) ?? this.DEFAULT_ROW_HEIGHT;
     }
 
+    // SETS THE HEIGHT OF THE ROW IN THE GRID
     public setRowHeight(row: number, value: number): void {
         const safeHeight = Math.min(Math.max(20, value), 150);
         const oldHeight = this.getRowHeight(row);
@@ -64,11 +62,12 @@ export class GridDimensions {
         this.cachedTotalGridHeight += (safeHeight - oldHeight);
     }
 
+    // GETS THE TOTAL HEIGHT OF THE GRID
     public getTotalGridHeight(): number {
-        console.log(this.cachedTotalGridWidth);
         return this.cachedTotalGridHeight;
     }
 
+    // GETS THE ROW INDEX AT THE Y POSITION OF THE MOUSE CURSOR USING BINARY SEARCH TO AVOID LOOPING 100,000 ROWS.
     public getRowIndexAtY(targetY: number): number {
         if (targetY <= this.COL_HEADER_HEIGHT) return 1;
         if (targetY >= this.getTotalGridHeight()) return this.TOTAL_ROWS;
@@ -97,6 +96,7 @@ export class GridDimensions {
         return result;
     }
 
+    // GETS THE Y POSITION OF THE ROW IN THE GRID
     public getRowYPosition(targetRow: number): number {
         if (targetRow <= 1) return this.COL_HEADER_HEIGHT;
 
@@ -110,9 +110,7 @@ export class GridDimensions {
         return y;
     }
 
-
-
-    // Converts column numbers to standard Excel lettering labels (1 -> A, 27 -> AA)
+    // GETS THE EXCEL COLUMN LABLE. EG 1 -> A, 2 -> B, 27 -> AA, 28 -> AB, ETC.
     public getExcelColumnLabel(col: number): string {
         let label = "";
         while (col > 0) {
@@ -123,16 +121,15 @@ export class GridDimensions {
         return label;
     }
 
-    // Generates coordinates key to retrieve text or structural objects
+    // GETS THE VALUE OF THE CELL DATA IN THE GRID
     public getCellData(row: number, col: number): string {
         if (row === 0) return this.getExcelColumnLabel(col);
         const key = `${row},${col}`;
         return this.dataStore.get(key)?.value ?? '';
     }
 
-    // Writes data back into a cell instance. 
-    // OPTIMIZATION: If the cell is emptied, we delete the key to save space in RAM!
-    public setCellData(row: number, col: number, newValue: string): void {
+   // SETS THE VALUE OF THE CELL DATA IN THE GRID
+   public setCellData(row: number, col: number, newValue: string): void {
         const key = `${row},${col}`;
         if (newValue === "") {
             this.dataStore.delete(key);
