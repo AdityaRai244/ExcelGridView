@@ -1,4 +1,3 @@
-import { Cell } from "./Cell.js";
 
 export class GridDimensions {
     public readonly TOTAL_ROWS: number = 100000;
@@ -9,10 +8,8 @@ export class GridDimensions {
     public readonly DEFAULT_ROW_HEIGHT: number = 28;
     public readonly DEFAULT_COL_WIDTH: number = 100;
 
-
     private rowStore: Map<number, number> = new Map();
     private colStore: Map<number, number> = new Map();
-    private dataStore: Map<string, Cell> = new Map();
 
     private cachedTotalGridWidth: number;
     private cachedTotalGridHeight: number;
@@ -121,20 +118,4 @@ export class GridDimensions {
         return label;
     }
 
-    // GETS THE VALUE OF THE CELL DATA IN THE GRID
-    public getCellData(row: number, col: number): string {
-        if (row === 0) return this.getExcelColumnLabel(col);
-        const key = `${row},${col}`;
-        return this.dataStore.get(key)?.value ?? '';
-    }
-
-    // SETS THE VALUE OF THE CELL DATA IN THE GRID
-    public setCellData(row: number, col: number, newValue: string): void {
-        const key = `${row},${col}`;
-        if (newValue === "") {
-            this.dataStore.delete(key);
-        } else {
-            this.dataStore.set(key, new Cell(newValue));
-        }
-    }
 }

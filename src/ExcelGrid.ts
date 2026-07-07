@@ -1,7 +1,6 @@
 import { SelectionManager } from "./SelectionManager.js";
 import { GridDimensions } from "./GridDimensions.js";
 import { seedSpreadsheetData } from "./seed.js";
-// import { seedSpreadsheetData } from "./seed.js";
 
 export class ExcelGrid {
 
@@ -55,7 +54,6 @@ export class ExcelGrid {
         // Handles the intial pressing of the mouse button (starting to drag row/col).
         this.scrollPane.addEventListener('mousedown', (e) => this.handleMouseDown(e));
 
-
         // Handles the movement of the mouse button (actively dragging row/col and changing cursor icons from pointer to resize).
         this.scrollPane.addEventListener('mousemove', (e) => this.handleMouseMove(e));
 
@@ -67,10 +65,6 @@ export class ExcelGrid {
 
         // Resizes the canvas to the size of the screen.
         this.resizeCanvas();
-    }
-
-    private handleCellMouseDown(e: MouseEvent): void {
-        console.log("Clicked");
     }
 
     private handleMouseDown(e: MouseEvent): void {

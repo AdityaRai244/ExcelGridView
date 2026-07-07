@@ -1,35 +1,51 @@
-// MAEKS CELLS ACTIVE AND TELLS WHICH CELL IS CURRENTLY ACTIVE.
+import { CellRange } from "./CellRange.js";
 
 export class SelectionManager {
 
     public activeRow: number | null = null;
     public activeCol: number | null = null;
-
-    private selectedCells: Set<string> = new Set();
+    public selectedRanges: CellRange[] = [];
 
     public select(row: number, col: number): void {
         this.activeRow = row;
         this.activeCol = col;
-        this.selectedCells.add(`${row},${col}`);
+        this.selectedRanges = [new CellRange(row, col, row, col)];
     }
 
     public selectMultiple(startRow: number, startCol: number, endRow: number, endCol: number): void {
         this.deselect();
-        for (let row = startRow; row <= endRow; row++) {
-            for (let col = startCol; col <= endCol; col++) {
-                this.selectedCells.add(`${row},${col}`);
-            }
-        }
+        this.selectedRanges = [new CellRange(startRow, startCol, endRow, endCol)];
+    }
+
+    public selectCol(col: number, totalRows: number): void {
+        this.activeRow = 1;
+        this.activeCol = col;
+        this.selectedRanges = [new CellRange(1, col, totalRows, col)];
+    }
+
+    public selectRow(row: number, totalCols: number): void {
+        this.activeRow = row;
+        this.activeCol = 1;
+        this.selectedRanges = [new CellRange(row, 1, row, totalCols)];
     }
 
     public deselect(): void {
         this.activeRow = null;
         this.activeCol = null;
-        this.selectedCells.clear();
+        this.selectedRanges = [];
     }
 
     public isSelected(row: number, col: number): boolean {
-        return this.selectedCells.has(`${row},${col}`);
+        for (const range of this.selectedRanges) {
+            if (range.contains(row, col)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public getRanges(): CellRange[] {
+        return this.selectedRanges;
     }
 
 }
