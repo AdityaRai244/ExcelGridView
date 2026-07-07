@@ -226,7 +226,6 @@ export class ExcelGrid {
         this.drawGrid();
     }
 
-
     private drawGrid(): void {
 
         // get scroll position and wipe the canvas clean.
@@ -258,6 +257,8 @@ export class ExcelGrid {
                     // highlight cell if it is selected by user.
                     if (this.selection.isSelected(r, c)) {
                         this.ctx.fillStyle = '#e8f0fe';
+
+                        //                x       y    width      height
                         this.ctx.fillRect(cellX, cellY, colWidth, rowHeight);
                     }
 
@@ -288,10 +289,12 @@ export class ExcelGrid {
             }
         }
 
-        // draw solid background to hide cells scrolling underneath.
+        // background color for cell headers.
         this.ctx.fillStyle = "#f1f3f4";
         this.ctx.fillRect(this.dimensions.ROW_HEADER_WIDTH, 0, this.viewportWidth, this.dimensions.COL_HEADER_HEIGHT);
 
+
+        // col names
         let headerX = this.dimensions.ROW_HEADER_WIDTH - scrollLeft;
         for (let c = 1; c <= this.dimensions.TOTAL_COLS; c++) {
             const colWidth = this.dimensions.getColWidth(c);
@@ -312,9 +315,12 @@ export class ExcelGrid {
             headerX += colWidth;
         }
 
-        // draw solid background to hide cells scrolling horizontally underneath.
+        // background color for row headers.
         this.ctx.fillStyle = "#f1f3f4";
         this.ctx.fillRect(0, this.dimensions.COL_HEADER_HEIGHT, this.dimensions.ROW_HEADER_WIDTH, this.viewportHeight);
+
+
+        // row numbers
         for (let r = startRow; r <= endRow; r++) {
             const rowHeight = this.dimensions.getRowHeight(r);
             const headerY = this.dimensions.getRowYPosition(r) - scrollTop;
@@ -333,13 +339,12 @@ export class ExcelGrid {
             this.ctx.fillText(r.toString(), this.dimensions.ROW_HEADER_WIDTH / 2, headerY + (rowHeight / 2));
         }
 
-        // paint the empty square where row and col headers intersect.
+         // paint the empty square where row and col headers intersect.
         this.ctx.fillStyle = "#e8eaed";
         this.ctx.fillRect(0, 0, this.dimensions.ROW_HEADER_WIDTH, this.dimensions.COL_HEADER_HEIGHT);
         this.ctx.strokeStyle = "#bbb";
         this.ctx.strokeRect(0, 0, this.dimensions.ROW_HEADER_WIDTH, this.dimensions.COL_HEADER_HEIGHT);
     }
-
 
     private handleScroll(): void {
 
