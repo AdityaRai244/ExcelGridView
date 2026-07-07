@@ -19,12 +19,12 @@ export class GridDimensions {
         this.cachedTotalGridHeight = this.COL_HEADER_HEIGHT + (this.TOTAL_ROWS * this.DEFAULT_ROW_HEIGHT);
     }
 
-    // GETS THE WIDTH OF THE COLUMN IN THE GRID
+    // returns width of the column
     public getColWidth(col: number): number {
         return this.colStore.get(col) ?? this.DEFAULT_COL_WIDTH;
     }
 
-    // SETS THE WIDTH OF THE COLUMN IN THE GRID
+    // sets the width of the column in the grid
     public setColWidth(col: number, value: number): void {
         const safeWidth = Math.min(Math.max(50, value), 500);
         const oldWidth = this.getColWidth(col);
@@ -32,12 +32,12 @@ export class GridDimensions {
         this.cachedTotalGridWidth += (safeWidth - oldWidth);
     }
 
-    // GETS THE TOTAL WIDTH OF THE GRID
+    // returns total width of the grid ( row header + all columns )
     public getTotalGridWidth(): number {
         return this.cachedTotalGridWidth;
     }
 
-    // GETS THE X POSITION OF THE COLUMN IN THE GRID
+    // returns x position of the column in the grid
     public getColXPosition(targetCol: number): number {
         let x = this.ROW_HEADER_WIDTH;
         for (let c = 1; c < targetCol; c++) {
@@ -46,12 +46,12 @@ export class GridDimensions {
         return x;
     }
 
-    // GETS THE HEIGHT OF THE ROW IN THE GRID
+    // returns height of the row in the grid
     public getRowHeight(row: number): number {
         return this.rowStore.get(row) ?? this.DEFAULT_ROW_HEIGHT;
     }
 
-    // SETS THE HEIGHT OF THE ROW IN THE GRID
+    // sets the height of the row in the grid
     public setRowHeight(row: number, value: number): void {
         const safeHeight = Math.min(Math.max(20, value), 150);
         const oldHeight = this.getRowHeight(row);
@@ -59,12 +59,12 @@ export class GridDimensions {
         this.cachedTotalGridHeight += (safeHeight - oldHeight);
     }
 
-    // GETS THE TOTAL HEIGHT OF THE GRID
+    // returns total height of the grid ( col header + all rows )
     public getTotalGridHeight(): number {
         return this.cachedTotalGridHeight;
     }
 
-    // GETS THE ROW INDEX AT THE Y POSITION OF THE MOUSE CURSOR USING BINARY SEARCH TO AVOID LOOPING 100,000 ROWS.
+    // returns the row index at the y position of the mouse cursor using binary search to avoid looping 100,000 rows.
     public getRowIndexAtY(targetY: number): number {
         if (targetY <= this.COL_HEADER_HEIGHT) return 1;
         if (targetY >= this.getTotalGridHeight()) return this.TOTAL_ROWS;
@@ -93,7 +93,37 @@ export class GridDimensions {
         return result;
     }
 
-    // GETS THE Y POSITION OF THE ROW IN THE GRID
+    // returns the column index at the x position of the mouse cursor using binary search.
+    // simple for loop is fine as well since the no. of cols is only 500.
+    public getColIndexAtX(targetX: number): number {
+        if (targetX <= this.ROW_HEADER_WIDTH) return 1;
+        if (targetX >= this.getTotalGridWidth()) return this.TOTAL_COLS;
+
+        let low = 1;
+        let high = this.TOTAL_COLS;
+        let result = 1;
+
+        while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            const midX = this.getColXPosition(mid);
+            const midWidth = this.getColWidth(mid);
+
+            if (targetX >= midX && targetX < midX + midWidth) {
+                return mid;
+            }
+
+            if (targetX < midX) {
+                high = mid - 1;
+            } else {
+                result = mid;
+                low = mid + 1;
+            }
+        }
+
+        return result;
+    }
+
+    // returns y position of the row in the grid
     public getRowYPosition(targetRow: number): number {
         if (targetRow <= 1) return this.COL_HEADER_HEIGHT;
 
@@ -107,7 +137,7 @@ export class GridDimensions {
         return y;
     }
 
-    // GETS THE EXCEL COLUMN LABLE. EG 1 -> A, 2 -> B, 27 -> AA, 28 -> AB, ETC.
+    // returns excel column lable. eg 1 -> A, 2 -> B, 27 -> AA, 28 -> AB, etc.
     public getExcelColumnLabel(col: number): string {
         let label = "";
         while (col > 0) {
@@ -117,5 +147,6 @@ export class GridDimensions {
         }
         return label;
     }
+
 
 }

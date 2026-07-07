@@ -6,7 +6,6 @@ export function seedSpreadsheetData(dataStore: DataStore) {
 
     console.time("Data Generation Time");
 
-    // Wipe previous data
     dataStore.clear();
 
     const totalRecords = 50000;

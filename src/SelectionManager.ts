@@ -44,8 +44,4 @@ export class SelectionManager {
         return false;
     }
 
-    public getRanges(): CellRange[] {
-        return this.selectedRanges;
-    }
-
 }
