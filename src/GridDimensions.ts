@@ -82,13 +82,13 @@ export class GridDimensions {
             const midHeight = this.getRowHeight(mid);
 
             if (targetY >= midY && targetY < midY + midHeight) {
-                return mid; 
+                return mid;
             }
 
             if (targetY < midY) {
                 high = mid - 1;
             } else {
-                result = mid; 
+                result = mid;
                 low = mid + 1;
             }
         }
@@ -128,8 +128,8 @@ export class GridDimensions {
         return this.dataStore.get(key)?.value ?? '';
     }
 
-   // SETS THE VALUE OF THE CELL DATA IN THE GRID
-   public setCellData(row: number, col: number, newValue: string): void {
+    // SETS THE VALUE OF THE CELL DATA IN THE GRID
+    public setCellData(row: number, col: number, newValue: string): void {
         const key = `${row},${col}`;
         if (newValue === "") {
             this.dataStore.delete(key);

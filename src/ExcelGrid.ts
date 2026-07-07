@@ -28,6 +28,13 @@ export class ExcelGrid {
     private rowResizeStartMouseY = 0;
     private rowResizeStartHeight = 0;
 
+    private selectedCellsStartCol: number = 0;
+    private selectedCellsEndCol: number = 0;
+    private selectedCellsStartRow: number = 0;
+    private selectedCellsEndRow: number = 0;
+    private isSelectingCols = false;
+
+
     constructor() {
         this.init();
         seedSpreadsheetData(this.dimensions);
@@ -48,17 +55,22 @@ export class ExcelGrid {
         // Handles the intial pressing of the mouse button (starting to drag row/col).
         this.scrollPane.addEventListener('mousedown', (e) => this.handleMouseDown(e));
 
+
         // Handles the movement of the mouse button (actively dragging row/col and changing cursor icons from pointer to resize).
         this.scrollPane.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-        
+
         // Handles release of the mouse button.
-        window.addEventListener('mouseup', () => this.handleMouseUp());
+        window.addEventListener('mouseup', (e) => this.handleMouseUp(e));
 
         // Handles the typing of the cell input.
         this.cellInput.addEventListener('keydown', (e) => this.handleInputKeydown(e));
 
         // Resizes the canvas to the size of the screen.
         this.resizeCanvas();
+    }
+
+    private handleCellMouseDown(e: MouseEvent): void {
+        console.log("Clicked");
     }
 
     private handleMouseDown(e: MouseEvent): void {
@@ -90,34 +102,59 @@ export class ExcelGrid {
                 return;
             }
 
-            
-        } else 
-             // If the mouse is above col header (less then col height) and right of the row headers that means we are clicking and dragging on the column headers.
+
+        } else
+            // If the mouse is above col header (less then col height) and right of the row headers that means we are clicking and dragging on the column headers.
             if (mouseY < this.dimensions.COL_HEADER_HEIGHT && mouseX > this.dimensions.ROW_HEADER_WIDTH) {
 
-            // Number of columns are only 500 so we can use simple for loop.
-            let currentX = this.dimensions.ROW_HEADER_WIDTH;
-            for (let c = 1; c <= this.dimensions.TOTAL_COLS; c++) {
-                currentX += this.dimensions.getColWidth(c);
+                // Number of columns are only 500 so we can use simple for loop.
+                let currentX = this.dimensions.ROW_HEADER_WIDTH;
+                for (let c = 1; c <= this.dimensions.TOTAL_COLS; c++) {
+                    currentX += this.dimensions.getColWidth(c);
 
-                // if the cursor is around 5px of the right side of the col that means we are expanding the col.
-                if (Math.abs(mouseX - currentX) <= 5) {
-                    this.isColResizing = true;
-                    this.resizeTargetCol = c;
-                    this.colResizeStartMouseX = e.clientX;
-                    this.colResizeStartWidth = this.dimensions.getColWidth(c);
+                    // if the cursor is around 5px of the right side of the col that means we are expanding the col.
+                    if (Math.abs(mouseX - currentX) <= 5) {
+                        this.isColResizing = true;
+                        this.resizeTargetCol = c;
+                        this.colResizeStartMouseX = e.clientX;
+                        this.colResizeStartWidth = this.dimensions.getColWidth(c);
 
-                    this.commitInputChanges();
-                    e.preventDefault();
-                    return;
+                        this.commitInputChanges();
+                        e.preventDefault();
+                        return;
+                    }
                 }
+
+            } else {
+                const rect = this.container.getBoundingClientRect();
+                const clickX = e.clientX - rect.left + this.scrollPane.scrollLeft;
+                const clickY = e.clientY - rect.top + this.scrollPane.scrollTop;
+
+                const targetRow = this.dimensions.getRowIndexAtY(clickY);
+
+                // Find target col based on x position of mouse (and offset)
+                let targetCol = 1;
+                let currentX = this.dimensions.ROW_HEADER_WIDTH;
+                while (targetCol <= this.dimensions.TOTAL_COLS) {
+                    const colWidth = this.dimensions.getColWidth(targetCol);
+                    if (clickX >= currentX && clickX < currentX + colWidth) {
+                        break;
+                    }
+                    currentX += colWidth;
+                    targetCol++;
+                }
+
+                this.selectedCellsStartRow = targetRow;
+                this.selectedCellsStartCol = targetCol;
+                this.isSelectingCols = true;
+
+                console.log(`start cell is at row ${targetRow} and col ${targetCol}`);
+
             }
-
-        }
-
 
 
     }
+
 
     private handleMouseMove(e: MouseEvent): void {
 
@@ -158,6 +195,18 @@ export class ExcelGrid {
             return;
         }
 
+        //if we are selecting cells
+        if (this.isSelectingCols) {
+            const startRow = this.selectedCellsStartRow;
+            const startCol = this.selectedCellsStartCol;
+
+            const endRow = this.selectedCellsEndRow;
+            const endCol = this.selectedCellsEndCol;
+
+            this.selection.select(endRow, endCol);
+
+        }
+
         // initially cursor icon is default
         let cursorStyle = 'default';
 
@@ -175,31 +224,58 @@ export class ExcelGrid {
                     break;
                 }
             }
-        } else 
+        } else
             // if mouse is hovering over our row headers we use the binary search and find our candidate: 
             if (mouseY > this.dimensions.COL_HEADER_HEIGHT && mouseX < this.dimensions.ROW_HEADER_WIDTH) {
-            const rowCandidate = this.dimensions.getRowIndexAtY(mouseY);
-            const rowBottomY = this.dimensions.getRowYPosition(rowCandidate) + this.dimensions.getRowHeight(rowCandidate);
+                const rowCandidate = this.dimensions.getRowIndexAtY(mouseY);
+                const rowBottomY = this.dimensions.getRowYPosition(rowCandidate) + this.dimensions.getRowHeight(rowCandidate);
 
-            // if mouse cursor is 5px around the borders of the row change cursor to row-resize.
-            if (Math.abs(mouseY - rowBottomY) <= 5) {
-                cursorStyle = 'row-resize';
+                // if mouse cursor is 5px around the borders of the row change cursor to row-resize.
+                if (Math.abs(mouseY - rowBottomY) <= 5) {
+                    cursorStyle = 'row-resize';
+                }
+            } else {
+                // if (this.isSelectingCols) {
+                //     console.log("selecting cols");
+                // }
             }
-        }
 
         // actually update the browser cursor to whatever is selected.
         this.scrollPane.style.cursor = cursorStyle;
     }
 
     // when user leaves the mouse just reset col/row resizing status to false and target col/row to null.
-    private handleMouseUp(): void {
+    private handleMouseUp(e: MouseEvent): void {
         this.isColResizing = false;
         this.resizeTargetCol = null;
 
         this.isRowResizing = false;
         this.resizeTargetRow = null;
-    }
 
+        if (this.isSelectingCols) {
+
+            const rect = this.container.getBoundingClientRect();
+            const clickX = e.clientX - rect.left + this.scrollPane.scrollLeft;
+            const clickY = e.clientY - rect.top + this.scrollPane.scrollTop;
+
+            const targetRow = this.dimensions.getRowIndexAtY(clickY);
+
+            // Find target col based on x position of mouse (and offset)
+            let targetCol = 1;
+            let currentX = this.dimensions.ROW_HEADER_WIDTH;
+            while (targetCol <= this.dimensions.TOTAL_COLS) {
+                const colWidth = this.dimensions.getColWidth(targetCol);
+                if (clickX >= currentX && clickX < currentX + colWidth) {
+                    break;
+                }
+                currentX += colWidth;
+                targetCol++;
+            }
+
+            this.selection.selectMultiple(this.selectedCellsStartRow, this.selectedCellsStartCol, targetRow, targetCol);
+
+        }
+    }
 
     private resizeCanvas(): void {
 
@@ -339,7 +415,7 @@ export class ExcelGrid {
             this.ctx.fillText(r.toString(), this.dimensions.ROW_HEADER_WIDTH / 2, headerY + (rowHeight / 2));
         }
 
-         // paint the empty square where row and col headers intersect.
+        // paint the empty square where row and col headers intersect.
         this.ctx.fillStyle = "#e8eaed";
         this.ctx.fillRect(0, 0, this.dimensions.ROW_HEADER_WIDTH, this.dimensions.COL_HEADER_HEIGHT);
         this.ctx.strokeStyle = "#bbb";
@@ -362,7 +438,6 @@ export class ExcelGrid {
         // if we are resizing row/col do not allow any mouse clicks.
         if (this.isColResizing) return;
         if (this.isRowResizing) return;
-
 
         // get x and y coordinates of the mouse also considering offset.
         const rect = this.container.getBoundingClientRect();
@@ -393,6 +468,12 @@ export class ExcelGrid {
         // save data of any old cell that was previously being edited if any.
         this.commitInputChanges();
 
+        if (this.selection.isSelected(targetRow, targetCol) && !this.isSelectingCols) {
+            console.log("selecting");
+            this.positionInputOverlay(targetRow, targetCol);
+            return;
+        }
+
         // point to the new cell
         this.selection.select(targetRow, targetCol);
 
@@ -400,7 +481,6 @@ export class ExcelGrid {
         this.drawGrid();
 
         // position input box to the new cell.
-        this.positionInputOverlay(targetRow, targetCol);
     }
 
     private positionInputOverlay(row: number, col: number): void {
@@ -425,7 +505,7 @@ export class ExcelGrid {
         this.cellInput.style.display = 'block';
         this.cellInput.focus();
     }
-    
+
     private commitInputChanges(): void {
 
         // if a block is selected to commit input changes set the cell data and hide the input box.
@@ -479,11 +559,11 @@ export class ExcelGrid {
             }
         }
     }
-    
+
     // ensure the active cell remains within the screen and does not go out of it.
     private ensureCellIsVisible(row: number, col: number): void {
         const colWidth = this.dimensions.getColWidth(col);
-        const rowHeight = this.dimensions.getRowHeight(row); 
+        const rowHeight = this.dimensions.getRowHeight(row);
 
         const cellLeft = this.dimensions.getColXPosition(col);
         const cellTop = this.dimensions.getRowYPosition(row);
@@ -494,11 +574,11 @@ export class ExcelGrid {
         // left boundary
         if (cellLeft < this.scrollPane.scrollLeft + this.dimensions.ROW_HEADER_WIDTH) {
             newScrollLeft = cellLeft - this.dimensions.ROW_HEADER_WIDTH;
-        } else 
+        } else
             // right boundary
             if (cellLeft + colWidth > this.scrollPane.scrollLeft + this.viewportWidth) {
-            newScrollLeft = cellLeft + colWidth - this.viewportWidth;
-        }
+                newScrollLeft = cellLeft + colWidth - this.viewportWidth;
+            }
 
         // top boundary
         if (cellTop < this.scrollPane.scrollTop + this.dimensions.COL_HEADER_HEIGHT) {
@@ -506,8 +586,8 @@ export class ExcelGrid {
         } else
             // bottom boundary
             if (cellTop + rowHeight > this.scrollPane.scrollTop + this.viewportHeight) {
-            newScrollTop = cellTop + rowHeight - this.viewportHeight;
-        }
+                newScrollTop = cellTop + rowHeight - this.viewportHeight;
+            }
 
 
         // if the cell was out of bound move scrollbars.
