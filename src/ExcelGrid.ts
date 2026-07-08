@@ -6,6 +6,7 @@ import { CellEditor } from "./CellEditor.js";
 import { InteractionHandler } from "./InteractionHandler.js";
 import { seedSpreadsheetData } from "./seed.js";
 import { FormulaPopup } from "./FormulaPopup.js";
+import { FormulaHandler } from "./FormulaHandler.js";
 
 export class ExcelGrid {
 
@@ -29,6 +30,7 @@ export class ExcelGrid {
     public editor: CellEditor;
     private interaction: InteractionHandler;
     public formulaPopup : FormulaPopup
+    public formulaHandler : FormulaHandler
 
     constructor() {
 
@@ -36,6 +38,7 @@ export class ExcelGrid {
         this.editor = new CellEditor(this.cellInput);
         this.interaction = new InteractionHandler(this);
         this.formulaPopup = new FormulaPopup(this.popup,this.editor);
+        this.formulaHandler = new FormulaHandler(this.editor,this.dimensions,this.dataStore);
 
         this.init();
         seedSpreadsheetData(this.dataStore);
