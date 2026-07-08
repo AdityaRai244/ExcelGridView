@@ -148,5 +148,17 @@ export class GridDimensions {
         return label;
     }
 
+    public getExcelColumnNumber(label: string): number {
+        let col = 0;
+
+        const cleanLabel = label.toUpperCase();
+        for (let i = 0; i < cleanLabel.length; i++) {
+            const charValue = cleanLabel.charCodeAt(i) - 65 + 1;
+            col = col * 26 + charValue;
+        }
+
+        return col;
+    }
+
 
 }

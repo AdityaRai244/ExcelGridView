@@ -1,4 +1,5 @@
 import type { ExcelGrid } from "./ExcelGrid.js";
+import { Formulas } from "./Formulas.js";
 
 export class InteractionHandler {
     private grid: ExcelGrid;
@@ -34,7 +35,25 @@ export class InteractionHandler {
         this.grid.scrollPane.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.grid.scrollPane.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         window.addEventListener('mouseup', (e) => this.handleMouseUp(e));
-        this.grid.cellInput.addEventListener('keydown', (e) => this.handleInputKeydown(e));
+        this.grid.cellInput.addEventListener('keyup', (e) => this.handleInputKeyUp(e));
+        window.addEventListener('keydown', (e) => this.moveSelectedCell(e));
+    }
+
+    private moveSelectedCell(e: KeyboardEvent) {
+
+        if (this.grid.selection.activeRow === null || this.grid.selection.activeCol === null || this.grid.editor.isEditing()) {
+            return;
+        }
+
+        if (e.key === 'ArrowRight') {
+            this.navigate(0, 1);
+        } else if (e.key === 'ArrowLeft') {
+            this.navigate(0, -1);
+        } else if (e.key === 'ArrowDown') {
+            this.navigate(1, 0);
+        } else if (e.key === 'ArrowUp') {
+            this.navigate(-1, 0);
+        }
     }
 
     private handleScroll(): void {
@@ -67,7 +86,7 @@ export class InteractionHandler {
 
         // If the mouse is below the column header row and to the left of the row headers that means
         // we are clicking and dragging on the row header.
-        if (mouseY > this.grid.dimensions.COL_HEADER_HEIGHT && mouseX < this.grid.dimensions.ROW_HEADER_WIDTH) {
+        if (mouseY - this.grid.scrollPane.scrollTop > this.grid.dimensions.COL_HEADER_HEIGHT && mouseX - this.grid.scrollPane.scrollLeft < this.grid.dimensions.ROW_HEADER_WIDTH) {
 
             // which row is our mouse cursor on ? Total number of rows are 100,000 so that means we cannot use a simple loop. 
             // Using binary search we find which row is our candidate.
@@ -96,18 +115,12 @@ export class InteractionHandler {
                 e.preventDefault();
                 return;
             }
-            // otherwise we have to select the whole row.
-            this.grid.selection.selectRow(rowCandidate, this.grid.dimensions.TOTAL_COLS);
-            this.commitInputChanges();
-            this.grid.drawGrid();
-            return;
         }
-
 
 
         // If the mouse is above col header (less then col height) and right of the row headers
         //  that means we are clicking and dragging on the column headers.
-        if (mouseY < this.grid.dimensions.COL_HEADER_HEIGHT && mouseX > this.grid.dimensions.ROW_HEADER_WIDTH) {
+        if (mouseY - this.grid.scrollPane.scrollTop < this.grid.dimensions.COL_HEADER_HEIGHT && mouseX - this.grid.scrollPane.scrollLeft > this.grid.dimensions.ROW_HEADER_WIDTH) {
             const colCandidate = this.grid.dimensions.getColIndexAtX(mouseX);
             const colX = this.grid.dimensions.getColXPosition(colCandidate);
             const colWidth = this.grid.dimensions.getColWidth(colCandidate);
@@ -137,11 +150,7 @@ export class InteractionHandler {
                 return;
             }
 
-            // otherwise we have to select the whole row.
-            this.grid.selection.selectCol(colCandidate, this.grid.dimensions.TOTAL_ROWS);
-            this.commitInputChanges();
-            this.grid.drawGrid();
-            return;
+
         }
 
         // we are selecting cells
@@ -253,9 +262,22 @@ export class InteractionHandler {
         const clickX = e.clientX - rect.left + this.grid.scrollPane.scrollLeft;
         const clickY = e.clientY - rect.top + this.grid.scrollPane.scrollTop;
 
-        // Clicked on headers commits input and exits
-        if (clickX < this.grid.dimensions.ROW_HEADER_WIDTH || clickY < this.grid.dimensions.COL_HEADER_HEIGHT) {
+        const rowCandidate = this.grid.dimensions.getRowIndexAtY(clickY);
+        const colCandidate = this.grid.dimensions.getColIndexAtX(clickX);
+
+        if (clickX - this.grid.scrollPane.scrollLeft < this.grid.dimensions.ROW_HEADER_WIDTH) {
+            // otherwise we have to select the whole row.
+            this.grid.selection.selectRow(rowCandidate, this.grid.dimensions.TOTAL_COLS);
             this.commitInputChanges();
+            this.grid.drawGrid();
+            return;
+        }
+        if (clickY - this.grid.scrollPane.scrollTop < this.grid.dimensions.COL_HEADER_HEIGHT) {
+
+            // otherwise we have to select the whole col.
+            this.grid.selection.selectCol(colCandidate, this.grid.dimensions.TOTAL_ROWS);
+            this.commitInputChanges();
+            this.grid.drawGrid();
             return;
         }
 
@@ -277,7 +299,8 @@ export class InteractionHandler {
         this.grid.drawGrid();
     }
 
-    private handleInputKeydown(e: KeyboardEvent): void {
+    private handleInputKeyUp(e: KeyboardEvent): void {
+
         if (e.key === 'Enter') {
             this.commitInputChanges();
             this.grid.scrollPane.focus();
@@ -285,14 +308,17 @@ export class InteractionHandler {
         } else if (e.key === 'Escape') {
             this.grid.editor.hide();
             this.grid.drawGrid();
-        } else if (e.key === 'ArrowRight') {
-            this.navigate(0, 1);
-        } else if (e.key === 'ArrowLeft') {
-            this.navigate(0, -1);
-        } else if (e.key === 'ArrowDown') {
-            this.navigate(1, 0);
-        } else if (e.key === 'ArrowUp') {
-            this.navigate(-1, 0);
+        }
+        else if (e.key === '=') {
+            const value = this.grid.editor.getValue();
+            if (value === '=' && (this.grid.selection.activeCol != null && this.grid.selection.activeRow != null)) {
+                const inputX = this.grid.dimensions.getColXPosition(this.grid.selection.activeCol) - this.grid.scrollPane.scrollLeft;
+                const inputY = this.grid.dimensions.getRowYPosition(this.grid.selection.activeRow) - this.grid.scrollPane.scrollTop;
+                const colWidth = this.grid.dimensions.getColWidth(this.grid.selection.activeCol);
+                const rowHeight = this.grid.dimensions.getRowHeight(this.grid.selection.activeRow);
+
+                this.grid.formulaPopup.show(inputX, inputY, colWidth, rowHeight, "Asdfadfs");
+            }
         }
     }
 
@@ -309,11 +335,9 @@ export class InteractionHandler {
             nextRow >= 1 && nextRow <= this.grid.dimensions.TOTAL_ROWS &&
             nextCol >= 1 && nextCol <= this.grid.dimensions.TOTAL_COLS
         ) {
-            this.commitInputChanges();
             this.grid.selection.select(nextRow, nextCol);
             this.grid.drawGrid();
             this.ensureCellIsVisible(nextRow, nextCol);
-            this.positionInputOverlay(nextRow, nextCol);
         }
     }
 
@@ -322,10 +346,177 @@ export class InteractionHandler {
         const activeCol = this.grid.selection.activeCol;
 
         if (this.grid.editor.isEditing() && activeRow !== null && activeCol !== null) {
-            this.grid.dataStore.setCellData(activeRow, activeCol, this.grid.editor.getValue());
-            this.grid.editor.hide();
+
+            if (this.grid.editor.getValue().startsWith('=')) {
+                this.handleFormula();
+            } else {
+                this.grid.dataStore.setCellData(activeRow, activeCol, this.grid.editor.getValue());
+                this.grid.editor.hide();
+                this.grid.formulaPopup.hide();
+            }
+
         }
     }
+
+    private matchFormat(args: string) {
+        const match = args.match(/^([A-Za-z0-9]+):([A-Za-z0-9]+)$/);
+        if (!match) return null;
+
+        const from = match[1];
+        const to = match[2];
+        if (!from || !to) return null;
+
+        const cellRegex = /^([A-Za-z]+)([0-9]+)$/;
+        const fromMatch = from.match(cellRegex);
+        const toMatch = to.match(cellRegex);
+
+        if (!fromMatch || !toMatch) return null;
+
+        const fromColLabel = fromMatch[1];
+        const fromRowStr = fromMatch[2];
+        const toColLabel = toMatch[1];
+        const toRowStr = toMatch[2];
+
+        if (!fromColLabel || !fromRowStr || !toColLabel || !toRowStr) {
+            return null;
+        }
+
+        const fromRow = parseInt(fromRowStr, 10);
+        const toRow = parseInt(toRowStr, 10);
+
+        const fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
+
+        return { fromRow, toRow, fromColNumber };
+    }
+
+    private handleSum(args: string) {
+
+        const format = this.matchFormat(args);
+        if (format === null) return;
+        const fromRow = format.fromRow;
+        const toRow = format.toRow;
+        const fromColNumber = format.fromColNumber;
+
+
+        let sum = 0;
+        console.log(fromRow, toRow);
+        for (let i = fromRow; i <= toRow; i++) {
+
+            sum += parseInt(this.grid.dataStore.getCellData(i, fromColNumber));
+        }
+
+        return sum.toString();
+    }
+
+    private handleMin(args: string) {
+        const format = this.matchFormat(args);
+        if (format === null) return;
+        const fromRow = format.fromRow;
+        const toRow = format.toRow;
+        const fromColNumber = format.fromColNumber;
+
+        let min = Number.MAX_VALUE;
+        console.log(fromRow, toRow);
+        for (let i = fromRow; i <= toRow; i++) {
+
+            min = Math.min(min, parseInt(this.grid.dataStore.getCellData(i, fromColNumber)));
+        }
+
+
+        return min.toString();
+    }
+
+    private handleMax(args: string) {
+        const format = this.matchFormat(args);
+        if (format === null) return;
+        const fromRow = format.fromRow;
+        const toRow = format.toRow;
+        const fromColNumber = format.fromColNumber;
+
+        let max = Number.MIN_VALUE;
+        console.log(fromRow, toRow);
+        for (let i = fromRow; i <= toRow; i++) {
+
+            max = Math.max(max, parseInt(this.grid.dataStore.getCellData(i, fromColNumber)));
+        }
+
+
+        return max.toString();
+    }
+    private handleAverage(args: string) {
+        const match = args.match(/^([A-Za-z0-9]+):([A-Za-z0-9]+)$/);
+        if (!match) return "Handling sum logic";
+
+        const from = match[1];
+        const to = match[2];
+        if (!from || !to) return "Handling sum logic";
+
+        const cellRegex = /^([A-Za-z]+)([0-9]+)$/;
+        const fromMatch = from.match(cellRegex);
+        const toMatch = to.match(cellRegex);
+
+        if (!fromMatch || !toMatch) return "Handling sum logic";
+
+        const fromColLabel = fromMatch[1];
+        const fromRowStr = fromMatch[2];
+        const toColLabel = toMatch[1];
+        const toRowStr = toMatch[2];
+
+        if (!fromColLabel || !fromRowStr || !toColLabel || !toRowStr) {
+            return "Handling sum logic";
+        }
+
+        const fromRow = parseInt(fromRowStr, 10);
+        const toRow = parseInt(toRowStr, 10);
+
+        const fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
+        const toColNumber = this.grid.dimensions.getExcelColumnNumber(toColLabel);
+
+        let avg = 0;
+        console.log(fromRow, toRow);
+        for (let i = fromRow; i <= toRow; i++) {
+
+            avg += parseInt(this.grid.dataStore.getCellData(i, fromColNumber));
+        }
+        console.log(avg);
+
+        avg = avg / Math.abs((fromRow - toRow + 1));
+        console.log(avg);
+
+        return avg.toString();
+    }
+
+    private handleFormula() {
+        const formulaHandlers: Record<Formulas, (args: string) => any> = {
+            [Formulas.Sum]: (args) => this.handleSum(args),
+            [Formulas.Min]: (args) => this.handleMin(args),
+            [Formulas.Max]: (args) => this.handleMax(args),
+            [Formulas.Average]: (args) => this.handleAverage(args),
+        };
+
+        let value = this.grid.editor.getValue();
+        if (!value) return;
+
+        const match = value.match(/^=([A-Za-z_]+)\((.*)\)/);
+        if (match) {
+            const rawName = match[1]?.toUpperCase();
+            const formulaArgs = match[2];
+
+            const extractedName = Object.values(Formulas).find(
+                (val) => val.toUpperCase() === rawName
+            ) as Formulas;
+
+            const handler = formulaHandlers[extractedName];
+
+            if (handler) {
+                const result = handler(formulaArgs ?? "");
+                this.grid.editor.setValue(result, false);
+            } else {
+                console.error("Formula not supported.");
+            }
+        }
+    }
+
 
     private ensureCellIsVisible(row: number, col: number): void {
         const colWidth = this.grid.dimensions.getColWidth(col);

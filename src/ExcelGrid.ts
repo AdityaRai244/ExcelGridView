@@ -5,6 +5,7 @@ import { GridRenderer } from "./GridRenderer.js";
 import { CellEditor } from "./CellEditor.js";
 import { InteractionHandler } from "./InteractionHandler.js";
 import { seedSpreadsheetData } from "./seed.js";
+import { FormulaPopup } from "./FormulaPopup.js";
 
 export class ExcelGrid {
 
@@ -19,6 +20,7 @@ export class ExcelGrid {
     public scrollPane = document.getElementById('scrollPane') as HTMLDivElement;
     public scrollContent = document.getElementById('scrollContent') as HTMLDivElement;
     public cellInput = document.getElementById('cellInput') as HTMLInputElement;
+    public popup = document.getElementById('popup') as HTMLDivElement;
 
     public viewportWidth = 0;
     public viewportHeight = 0;
@@ -26,12 +28,14 @@ export class ExcelGrid {
     public renderer: GridRenderer;
     public editor: CellEditor;
     private interaction: InteractionHandler;
+    public formulaPopup : FormulaPopup
 
     constructor() {
 
         this.renderer = new GridRenderer(this.canvas);
         this.editor = new CellEditor(this.cellInput);
         this.interaction = new InteractionHandler(this);
+        this.formulaPopup = new FormulaPopup(this.popup,this.editor);
 
         this.init();
         seedSpreadsheetData(this.dataStore);

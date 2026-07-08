@@ -64,8 +64,8 @@ export class GridRenderer {
 
                     // highlight cell if it is selected by user.
                     if (selection.isSelected(r, c)) {
-                        this.ctx.fillStyle = '#e8f0fe';
-
+                     
+                        this.ctx.fillStyle = '#abbbd3';
                         //                x       y    width      height
                         this.ctx.fillRect(cellX, cellY, colWidth, rowHeight);
                     }

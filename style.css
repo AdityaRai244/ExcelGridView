@@ -1,51 +1,73 @@
-        * {
-            box-sizing: border-box;
-            font-family: sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+* {
+    box-sizing: border-box;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+}
 
-        body {
-            background-color: #f4f5f7;
-        }
+body {
+    background-color: #f4f5f7;
+}
 
-        .grid-container {
-            position: relative;
-            height: 100vh;
-            width: 100vw;
-            border: 1px solid #bbb;
-            background: white;
-        }
+.grid-container {
+    position: relative;
+    height: 100vh;
+    width: 100vw;
+    border: 1px solid #bbb;
+    background: white;
+}
 
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            pointer-events: none;
-        }
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
+}
 
-        .scroll-pane {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            z-index: 2;
-        }
+.scroll-pane {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    z-index: 2;
+}
 
-        .scroll-content {
-            pointer-events: none;
-        }
+.scroll-content {
+    pointer-events: none;
+}
 
-        #cellInput {
-            position: absolute;
-            display: none;
-            z-index: 10;
-            border: 2px solid #1a73e8;
-            outline: none;
-            font-size: 13px;
-            padding: 0 5px;
-            background: white;
-        }
+#cellInput {
+    position: absolute;
+    display: none;
+    z-index: 10;
+    border: 2px solid #1a73e8;
+    outline: none;
+    font-size: 13px;
+    padding: 0 5px;
+    background: white;
+}
+
+#popup {
+    display: none;
+}
+
+.formulaDiv {
+    padding: 4px;
+}
+
+.formula-btn {
+    text-align: left;
+    font-size: 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    padding: 6px 5px;
+    /* margin-top: 2px; */
+    border-radius: 2px;
+}
+
+.formula-btn:hover {
+    background-color: #e9e7e7;
+}
