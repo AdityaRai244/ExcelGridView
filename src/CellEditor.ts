@@ -29,7 +29,7 @@ export class CellEditor {
         if (isFormula) {
             this.inputEle.value = `=${formula}(`;
         }else{
-            this.inputEle.value = `${formula}`;
+            this.inputEle.value = `${formula}(`;
         }
         this.inputEle.focus();
     }

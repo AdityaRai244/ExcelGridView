@@ -1,4 +1,5 @@
 import type { DataStore } from "./DataStore.js";
+import type { ExcelGrid } from "./ExcelGrid.js";
 import type { GridDimensions } from "./GridDimensions.js";
 import type { SelectionManager } from "./SelectionManager.js";
 
@@ -8,8 +9,8 @@ export class GridRenderer {
     private viewportWidth: number = 0;
     private viewportHeight: number = 0;
 
-    constructor(private canvas: HTMLCanvasElement) {
-        this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+    constructor(private grid : ExcelGrid) {
+        this.ctx = this.grid.canvas.getContext('2d') as CanvasRenderingContext2D;
     }
 
     // Handles window resize ( responsiveness )
@@ -20,10 +21,10 @@ export class GridRenderer {
 
         // ensures that the content doesnt overstretch and does not come out to be blurred due to scaling.
         const dpr = window.devicePixelRatio || 1;
-        this.canvas.width = this.viewportWidth * dpr;
-        this.canvas.height = this.viewportHeight * dpr;
-        this.canvas.style.width = `${this.viewportWidth}px`;
-        this.canvas.style.height = `${this.viewportHeight}px`;
+        this.grid.canvas.width = this.viewportWidth * dpr;
+        this.grid.canvas.height = this.viewportHeight * dpr;
+        this.grid.canvas.style.width = `${this.viewportWidth}px`;
+        this.grid.canvas.style.height = `${this.viewportHeight}px`;
         this.ctx.scale(dpr, dpr);
         scrollContent.style.width = `${totalWidth}px`;
         scrollContent.style.height = `${totalHeight}px`;

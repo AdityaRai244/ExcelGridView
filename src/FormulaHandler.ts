@@ -1,17 +1,17 @@
-import { CellEditor } from "./CellEditor.js";
-import type { DataStore } from "./DataStore.js";
+import type { ExcelGrid } from "./ExcelGrid.js";
 import { Formulas } from "./Formulas.js";
-import { GridDimensions } from "./GridDimensions.js";
 
 export class FormulaHandler {
 
-    constructor(
-        private editor: CellEditor,
-        private dimensions: GridDimensions,
-        private dataStore: DataStore
-    ) { }
+    private grid: ExcelGrid;
 
-    private handleFormula() {
+    constructor(
+        grid: ExcelGrid
+    ) {
+        this.grid = grid;
+    }
+
+    public handleFormula() {
         const formulaHandlers: Record<Formulas, (args: string) => any> = {
             [Formulas.Sum]: (args) => this.handleSum(args),
             [Formulas.Min]: (args) => this.handleMin(args),
@@ -19,7 +19,7 @@ export class FormulaHandler {
             [Formulas.Average]: (args) => this.handleAverage(args),
         };
 
-        let value = this.editor.getValue();
+        let value = this.grid.editor.getValue();
         if (!value) return;
 
         const match = value.match(/^=([A-Za-z_]+)\((.*)\)/);
@@ -35,7 +35,7 @@ export class FormulaHandler {
 
             if (handler) {
                 const result = handler(formulaArgs ?? "");
-                this.editor.setValue(result, false);
+                this.grid.editor.setValue(result, false);
             } else {
                 console.error("Formula not supported.");
             }
@@ -69,7 +69,7 @@ export class FormulaHandler {
         const fromRow = parseInt(fromRowStr, 10);
         const toRow = parseInt(toRowStr, 10);
 
-        const fromColNumber = this.dimensions.getExcelColumnNumber(fromColLabel);
+        const fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
 
         return { fromRow, toRow, fromColNumber };
     }
@@ -87,7 +87,7 @@ export class FormulaHandler {
         console.log(fromRow, toRow);
         for (let i = fromRow; i <= toRow; i++) {
 
-            sum += parseInt(this.dataStore.getCellData(i, fromColNumber));
+            sum += parseInt(this.grid.dataStore.getCellData(i, fromColNumber));
         }
 
         return sum.toString();
@@ -104,7 +104,7 @@ export class FormulaHandler {
         console.log(fromRow, toRow);
         for (let i = fromRow; i <= toRow; i++) {
 
-            min = Math.min(min, parseInt(this.dataStore.getCellData(i, fromColNumber)));
+            min = Math.min(min, parseInt(this.grid.dataStore.getCellData(i, fromColNumber)));
         }
 
 
@@ -122,7 +122,7 @@ export class FormulaHandler {
         console.log(fromRow, toRow);
         for (let i = fromRow; i <= toRow; i++) {
 
-            max = Math.max(max, parseInt(this.dataStore.getCellData(i, fromColNumber)));
+            max = Math.max(max, parseInt(this.grid.dataStore.getCellData(i, fromColNumber)));
         }
 
 
@@ -154,14 +154,14 @@ export class FormulaHandler {
         const fromRow = parseInt(fromRowStr, 10);
         const toRow = parseInt(toRowStr, 10);
 
-        const fromColNumber = this.dimensions.getExcelColumnNumber(fromColLabel);
-        const toColNumber = this.dimensions.getExcelColumnNumber(toColLabel);
+        const fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
+        const toColNumber = this.grid.dimensions.getExcelColumnNumber(toColLabel);
 
         let avg = 0;
         console.log(fromRow, toRow);
         for (let i = fromRow; i <= toRow; i++) {
 
-            avg += parseInt(this.dataStore.getCellData(i, fromColNumber));
+            avg += parseInt(this.grid.dataStore.getCellData(i, fromColNumber));
         }
         console.log(avg);
 

@@ -1,8 +1,11 @@
 import type { CellEditor } from "./CellEditor.js";
+import type { ExcelGrid } from "./ExcelGrid.js";
 import { Formulas } from "./Formulas.js";
 
 export class FormulaPopup {
-    constructor(private divEle: HTMLDivElement, private editor: CellEditor) {
+
+
+    constructor(private divEle: HTMLDivElement, private grid: ExcelGrid) {
         this.initEventListeners();
     }
 
@@ -39,7 +42,7 @@ export class FormulaPopup {
     }
 
     private handleFormulaClick(formula: Formulas): void {
-        this.editor.setValue(formula,true);
+        this.grid.editor.setValue(formula,true);
         this.hide();
     }
 

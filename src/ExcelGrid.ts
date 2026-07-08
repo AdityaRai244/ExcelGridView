@@ -7,6 +7,12 @@ import { InteractionHandler } from "./InteractionHandler.js";
 import { seedSpreadsheetData } from "./seed.js";
 import { FormulaPopup } from "./FormulaPopup.js";
 import { FormulaHandler } from "./FormulaHandler.js";
+import { RowResizeController } from "./RowResizeController.js";
+import { ColResizeController } from "./ColResizeController.js";
+import { InputController } from "./InputController.js";
+import { CellController } from "./CellController.js";
+import { MouseEventsController } from "./MouseEventsController.js";
+import { ScrollController } from "./ScrollController.js";
 
 export class ExcelGrid {
 
@@ -28,17 +34,30 @@ export class ExcelGrid {
 
     public renderer: GridRenderer;
     public editor: CellEditor;
-    private interaction: InteractionHandler;
+    public interaction: InteractionHandler;
     public formulaPopup : FormulaPopup
     public formulaHandler : FormulaHandler
+    public rowResizeController : RowResizeController;
+    public colResizeController : ColResizeController;
+    public inputController : InputController;
+    public cellController : CellController;
+    public mouseEventsController : MouseEventsController
+    public scrollController : ScrollController
+
 
     constructor() {
 
-        this.renderer = new GridRenderer(this.canvas);
+        this.renderer = new GridRenderer(this);
         this.editor = new CellEditor(this.cellInput);
+        this.formulaPopup = new FormulaPopup(this.popup,this);
+        this.formulaHandler = new FormulaHandler(this);
+        this.rowResizeController = new RowResizeController(this);
+        this.colResizeController = new ColResizeController(this);
+        this.inputController = new InputController(this);
         this.interaction = new InteractionHandler(this);
-        this.formulaPopup = new FormulaPopup(this.popup,this.editor);
-        this.formulaHandler = new FormulaHandler(this.editor,this.dimensions,this.dataStore);
+        this.cellController = new CellController(this);
+        this.mouseEventsController = new MouseEventsController(this);
+        this.scrollController = new ScrollController(this);
 
         this.init();
         seedSpreadsheetData(this.dataStore);
