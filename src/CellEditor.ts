@@ -4,6 +4,8 @@ import { Formulas } from "./Formulas.js";
 export class CellEditor {
     constructor(private inputEle: HTMLInputElement) { }
 
+    public isFormulaEntered: boolean = false;
+
     public show(x: number, y: number, width: number, height: number, value: string): void {
         this.inputEle.style.left = `${x}px`;
         this.inputEle.style.top = `${y}px`;
@@ -26,13 +28,20 @@ export class CellEditor {
     public getValue(): string {
         return this.inputEle.value;
     }
-    public setValue(formula: Formulas, isFormula: boolean) {
-        
-        if (isFormula) {
-            this.inputEle.value = `=${formula}(`;
-        } else {
-            this.inputEle.value = `${formula}`;
-        }
+
+    public setFormula(formula: Formulas) {
+        this.inputEle.value = `=${formula}(`;
+        this.isFormulaEntered = true;
+        this.inputEle.focus();
+    }
+
+    public setValue(args: string) {
+        this.inputEle.value = `${args}`;
+        this.inputEle.focus();
+    }
+     public appendValue(args: string) {
+        const finalValue = `${this.inputEle.value}${args})`
+        this.inputEle.value = finalValue;
         this.inputEle.focus();
     }
 

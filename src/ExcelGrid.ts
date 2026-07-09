@@ -12,7 +12,7 @@ import { ColResizeController } from "./controllers/ColResizeController.js";
 import { InputController } from "./controllers/InputController.js";
 import { CellController } from "./controllers/CellController.js";
 import { MouseEventsController } from "./controllers/MouseEventsController.js";
-import { ScrollController } from "./ScrollController.js";
+import { ScrollController } from "./controllers/ScrollController.js";
 import { CommandManager } from "./command/CommandManager.js";
 
 export class ExcelGrid {

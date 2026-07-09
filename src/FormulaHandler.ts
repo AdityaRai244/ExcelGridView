@@ -17,6 +17,7 @@ export class FormulaHandler {
             [Formulas.Min]: (args) => this.handleMin(args),
             [Formulas.Max]: (args) => this.handleMax(args),
             [Formulas.Average]: (args) => this.handleAverage(args),
+            [Formulas.Count]: (args) => this.handleCount(args),
         };
 
         let value = this.grid.editor.getValue();
@@ -35,7 +36,7 @@ export class FormulaHandler {
 
             if (handler) {
                 const result = handler(formulaArgs ?? "");
-                this.grid.editor.setValue(result, false);
+                this.grid.editor.setValue(result);
             } else {
                 console.error("Formula not supported.");
             }
@@ -169,6 +170,25 @@ export class FormulaHandler {
         console.log(avg);
 
         return avg.toString();
+    }
+
+    private handleCount(args: string) {
+        const format = this.matchFormat(args);
+        if (format === null) return;
+        const fromRow = format.fromRow;
+        const toRow = format.toRow;
+        const fromColNumber = format.fromColNumber;
+
+        let count: number = 0;
+        for (let i = fromRow; i <= toRow; i++) {
+            const cellValue = this.grid.dataStore.getCellData(i, fromColNumber);
+            if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
+                count++;
+            }
+        }
+
+
+        return count.toString();
     }
 
 

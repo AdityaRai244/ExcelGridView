@@ -56,6 +56,9 @@ canvas {
 
 .formulaDiv {
     padding: 4px;
+    height: auto;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 .formula-btn {
@@ -64,10 +67,10 @@ canvas {
     letter-spacing: 1px;
     cursor: pointer;
     padding: 6px 5px;
-    /* margin-top: 2px; */
+    text-transform: capitalize;
     border-radius: 2px;
 }
 
-.formula-btn:hover {
+.formula-btn:hover, .formulaDiv .active  {
     background-color: #e9e7e7;
 }

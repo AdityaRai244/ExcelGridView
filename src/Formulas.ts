@@ -1,6 +1,7 @@
 export enum Formulas{
-    Sum = "Sum",
-    Min = "Minimum",
-    Max = "Maximum",
-    Average = "Average"
+    Sum = "SUM",
+    Min = "MINIMUM",
+    Max = "MAXIMUM",
+    Average = "AVERAGE",
+    Count = "COUNT"
 }

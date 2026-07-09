@@ -1,4 +1,4 @@
-import type { ExcelGrid } from "./ExcelGrid.js";
+import type { ExcelGrid } from "../ExcelGrid.js";
 
 export class ScrollController {
 

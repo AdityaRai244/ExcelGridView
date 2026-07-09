@@ -23,16 +23,20 @@ export class FormulaPopup {
         });
     }
 
-    public show(x: number, y: number, width: number, height: number, value: string): void {
+    public show(x: number, y: number, width: number, height: number, formulas: string[], active: number = 0): void {
+
+        if (formulas.length === 0) {
+            this.hide();
+            return;
+        }
         this.divEle.style.left = `${x}px`;
         this.divEle.style.top = `${y + height}px`;
-        this.divEle.style.width = `${2.5 * width + 1}px`;
-        this.divEle.style.height = `${6 * height + 1}px`;
-
+        this.divEle.style.width = `${2.5 * this.grid.dimensions.DEFAULT_COL_WIDTH + 1}px`;
+        this.divEle.style.height = 'auto';
         this.divEle.innerHTML = `
            <div class="formulaDiv">
-            ${Object.values(Formulas).map((val) => {
-            return `<p class="formula-btn" data-value="${val}">${val}</p>`;
+            ${formulas.map((val, idx) => {
+            return `<p class="${`formula-btn ${idx === active ? `active` : ``}`}" data-value="${val}">${val}</p>`;
         }).join('')}
            </div>
         `;
@@ -41,8 +45,8 @@ export class FormulaPopup {
         this.divEle.focus();
     }
 
-    private handleFormulaClick(formula: Formulas): void {
-        this.grid.editor.setValue(formula,true);
+    public handleFormulaClick(formula: Formulas): void {
+        this.grid.editor.setFormula(formula);
         this.hide();
     }
 

@@ -92,7 +92,6 @@ export class MouseEventsController {
             if (targetRow !== this.selectedCellsStartRow || targetCol !== this.selectedCellsStartCol) {
                 this.justDragged = true;
             }
-
             this.grid.selection.selectMultiple(this.selectedCellsStartRow, this.selectedCellsStartCol, targetRow, targetCol);
             requestAnimationFrame(() => this.grid.drawGrid());
             return;
@@ -123,6 +122,24 @@ export class MouseEventsController {
 
     public handleMouseUp(e: MouseEvent): void {
 
+        const rect = this.grid.container.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left + this.grid.scrollPane.scrollLeft;
+        const mouseY = e.clientY - rect.top + this.grid.scrollPane.scrollTop;
+
+        if (this.justDragged) {
+            const targetRow = this.grid.dimensions.getRowIndexAtY(mouseY);
+            const targetCol = this.grid.dimensions.getColIndexAtX(mouseX);
+
+            if (this.grid.editor.isFormulaEntered) {
+                const args = `${this.grid.dimensions.getExcelColumnLabel(this.selectedCellsStartCol)}${this.selectedCellsStartRow}:${this.grid.dimensions.getExcelColumnLabel(targetCol)}${targetRow}`
+                this.grid.editor.appendValue(args);
+            }
+            this.isDraggingSelection = false;
+
+            return;
+        }
+
+
         if (this.grid.colResizeController.isColResizing && this.grid.colResizeController.resizeTargetCol !== null) {
             const col = this.grid.colResizeController.resizeTargetCol;
             const finalWidth = this.grid.dimensions.getColWidth(col);
@@ -139,7 +156,7 @@ export class MouseEventsController {
             }
         }
 
-         if (this.grid.rowResizeController.isRowResizing && this.grid.rowResizeController.resizeTargetRow !== null) {
+        if (this.grid.rowResizeController.isRowResizing && this.grid.rowResizeController.resizeTargetRow !== null) {
             const row = this.grid.rowResizeController.resizeTargetRow;
             const finalHeight = this.grid.dimensions.getRowHeight(row);
 
