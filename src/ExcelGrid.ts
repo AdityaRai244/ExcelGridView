@@ -7,12 +7,13 @@ import { InteractionHandler } from "./InteractionHandler.js";
 import { seedSpreadsheetData } from "./seed.js";
 import { FormulaPopup } from "./FormulaPopup.js";
 import { FormulaHandler } from "./FormulaHandler.js";
-import { RowResizeController } from "./RowResizeController.js";
-import { ColResizeController } from "./ColResizeController.js";
-import { InputController } from "./InputController.js";
-import { CellController } from "./CellController.js";
-import { MouseEventsController } from "./MouseEventsController.js";
+import { RowResizeController } from "./controllers/RowResizeController.js";
+import { ColResizeController } from "./controllers/ColResizeController.js";
+import { InputController } from "./controllers/InputController.js";
+import { CellController } from "./controllers/CellController.js";
+import { MouseEventsController } from "./controllers/MouseEventsController.js";
 import { ScrollController } from "./ScrollController.js";
+import { CommandManager } from "./command/CommandManager.js";
 
 export class ExcelGrid {
 
@@ -21,6 +22,8 @@ export class ExcelGrid {
     public dimensions = new GridDimensions();
     public dataStore = new DataStore();
 
+    public commandController = new CommandManager(this);
+
     public container = document.getElementById('gridContainer') as HTMLDivElement;
     public canvas = document.getElementById('gridCanvas') as HTMLCanvasElement;
     public ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -28,6 +31,7 @@ export class ExcelGrid {
     public scrollContent = document.getElementById('scrollContent') as HTMLDivElement;
     public cellInput = document.getElementById('cellInput') as HTMLInputElement;
     public popup = document.getElementById('popup') as HTMLDivElement;
+    
 
     public viewportWidth = 0;
     public viewportHeight = 0;

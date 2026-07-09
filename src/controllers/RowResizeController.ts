@@ -1,4 +1,4 @@
-import type { ExcelGrid } from "./ExcelGrid.js";
+import type { ExcelGrid } from "../ExcelGrid.js";
 
 export class RowResizeController {
 
@@ -26,7 +26,7 @@ export class RowResizeController {
             this.rowResizeStartMouseY = e.clientY;
             this.rowResizeStartHeight = this.grid.dimensions.getRowHeight(rowCandidate);
 
-            this.grid.interaction.commitInputChanges();
+            this.grid.inputController.commitInputChanges();
             e.preventDefault();
             return;
         }
@@ -36,7 +36,7 @@ export class RowResizeController {
             this.resizeTargetRow = rowCandidate - 1;
             this.rowResizeStartMouseY = e.clientY;
             this.rowResizeStartHeight = this.grid.dimensions.getRowHeight(rowCandidate - 1);
-            this.grid.interaction.commitInputChanges();
+            this.grid.inputController.commitInputChanges();
             e.preventDefault();
             return;
         }

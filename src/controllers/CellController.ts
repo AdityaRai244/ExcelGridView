@@ -1,4 +1,4 @@
-import type { ExcelGrid } from "./ExcelGrid.js";
+import type { ExcelGrid } from "../ExcelGrid.js";
 
 export class CellController {
 
@@ -56,6 +56,29 @@ export class CellController {
     }
 
     public moveSelectedCell(e: KeyboardEvent) {
+        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+        const isModifierPressed = isMac ? e.metaKey : e.ctrlKey;
+
+        if (isModifierPressed) {
+            const key = e.key.toLowerCase();
+
+            if (key === 'z') {
+                e.preventDefault(); 
+
+                if (isMac && e.shiftKey) {
+                    this.grid.commandController.redo();
+                } else {
+                    this.grid.commandController.undo();
+                }
+                return; 
+            }
+
+            if (!isMac && key === 'y') {
+                e.preventDefault(); 
+                this.grid.commandController.redo();
+                return; 
+            }
+        }
 
         if (this.grid.selection.activeRow === null || this.grid.selection.activeCol === null || this.grid.editor.isEditing()) {
             return;
@@ -71,5 +94,6 @@ export class CellController {
             this.grid.cellController.navigateCells(-1, 0);
         }
     }
+
 
 }

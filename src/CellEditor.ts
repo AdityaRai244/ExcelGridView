@@ -1,3 +1,4 @@
+import { EditCellCommand } from "./command/EditCellCommand.js";
 import { Formulas } from "./Formulas.js";
 
 export class CellEditor {
@@ -26,10 +27,11 @@ export class CellEditor {
         return this.inputEle.value;
     }
     public setValue(formula: Formulas, isFormula: boolean) {
+        
         if (isFormula) {
             this.inputEle.value = `=${formula}(`;
-        }else{
-            this.inputEle.value = `${formula}(`;
+        } else {
+            this.inputEle.value = `${formula}`;
         }
         this.inputEle.focus();
     }

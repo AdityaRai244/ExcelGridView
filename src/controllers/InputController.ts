@@ -1,4 +1,5 @@
-import type { ExcelGrid } from "./ExcelGrid.js";
+import { EditCellCommand } from "../command/EditCellCommand.js";
+import type { ExcelGrid } from "../ExcelGrid.js";
 
 export class InputController {
     constructor(private grid: ExcelGrid) { }
@@ -12,7 +13,9 @@ export class InputController {
             if (this.grid.editor.getValue().startsWith('=')) {
                 this.grid.formulaHandler.handleFormula();
             } else {
-                this.grid.dataStore.setCellData(activeRow, activeCol, this.grid.editor.getValue());
+                // this.grid.dataStore.setCellData(activeRow, activeCol, this.grid.editor.getValue());
+                const command = new EditCellCommand(this.grid, activeRow, activeCol, this.grid.editor.getValue());
+                this.grid.commandController.executeCommand(command);
                 this.grid.editor.hide();
                 this.grid.formulaPopup.hide();
             }

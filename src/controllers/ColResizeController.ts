@@ -1,8 +1,7 @@
-import type { ExcelGrid } from "./ExcelGrid.js";
+import type { ExcelGrid } from "../ExcelGrid.js";
 
 export class ColResizeController {
 
-    // states for resizing columns
     public isColResizing = false;
     public resizeTargetCol: number | null = null;
     public colResizeStartMouseX = 0;
@@ -12,15 +11,13 @@ export class ColResizeController {
         private grid: ExcelGrid,
     ) { }
 
-    public handleColResize(e: MouseEvent, mouseX: any) {
-
+    public handleColResize(e: MouseEvent, mouseX: any,mouseY : any) {
         // If the mouse is above col header (less then col height) and right of the row headers
         //  that means we are clicking and dragging on the column headers.
-        if (mouseX - this.grid.scrollPane.scrollTop < this.grid.dimensions.COL_HEADER_HEIGHT && mouseX - this.grid.scrollPane.scrollLeft > this.grid.dimensions.ROW_HEADER_WIDTH) {
+        if (mouseY - this.grid.scrollPane.scrollTop < this.grid.dimensions.COL_HEADER_HEIGHT && mouseX - this.grid.scrollPane.scrollLeft > this.grid.dimensions.ROW_HEADER_WIDTH) {
             const colCandidate = this.grid.dimensions.getColIndexAtX(mouseX);
             const colX = this.grid.dimensions.getColXPosition(colCandidate);
             const colWidth = this.grid.dimensions.getColWidth(colCandidate);
-
             // if the cursor is around 5px of the right side of the col that means we are expanding the col.
             if (Math.abs(mouseX - (colX + colWidth)) <= 5) {
                 this.isColResizing = true;

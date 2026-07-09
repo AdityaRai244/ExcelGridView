@@ -1,4 +1,6 @@
-import type { ExcelGrid } from "./ExcelGrid.js";
+import { ResizeColCommand } from "../command/ResizeColCommand.js";
+import { ResizeRowCommand } from "../command/ResizeRowCommand.js";
+import type { ExcelGrid } from "../ExcelGrid.js";
 
 export class MouseEventsController {
 
@@ -12,6 +14,9 @@ export class MouseEventsController {
     private justDragged = false;
     private preventNextClick = false;
 
+    private colOriginalWidthBeforeDrag = 0;
+    private rowOriginalHeightBeforeDrag = 0;
+
 
     public handleMouseDown(e: MouseEvent): void {
         const rect = this.grid.container.getBoundingClientRect();
@@ -21,7 +26,15 @@ export class MouseEventsController {
 
         this.grid.rowResizeController.handleRowResize(e, mouseY);
 
-        this.grid.colResizeController.handleColResize(e, mouseX);
+        this.grid.colResizeController.handleColResize(e, mouseX, mouseY);
+
+        if (this.grid.colResizeController.isColResizing && this.grid.colResizeController.resizeTargetCol !== null) {
+            this.colOriginalWidthBeforeDrag = this.grid.dimensions.getColWidth(this.grid.colResizeController.resizeTargetCol);
+        }
+
+        if (this.grid.rowResizeController.isRowResizing && this.grid.rowResizeController.resizeTargetRow !== null) {
+            this.rowOriginalHeightBeforeDrag = this.grid.dimensions.getRowHeight(this.grid.rowResizeController.resizeTargetRow);
+        }
 
         // we are selecting cells
         if (mouseX >= this.grid.dimensions.ROW_HEADER_WIDTH && mouseY >= this.grid.dimensions.COL_HEADER_HEIGHT) {
@@ -47,6 +60,9 @@ export class MouseEventsController {
             // Set that as the new widht for the column in real time.
             const deltaX = e.clientX - this.grid.colResizeController.colResizeStartMouseX;
             const newWidth = this.grid.colResizeController.colResizeStartWidth + deltaX;
+
+            // const command = new ResizeColCommand(this.grid,this.grid.colResizeController.resizeTargetCol,newWidth);
+            // this.grid.commandController.executeCommand(command);
 
             this.grid.dimensions.setColWidth(this.grid.colResizeController.resizeTargetCol, newWidth);
             this.grid.scrollContent.style.width = `${this.grid.dimensions.getTotalGridWidth()}px`;
@@ -106,6 +122,39 @@ export class MouseEventsController {
     }
 
     public handleMouseUp(e: MouseEvent): void {
+
+        if (this.grid.colResizeController.isColResizing && this.grid.colResizeController.resizeTargetCol !== null) {
+            const col = this.grid.colResizeController.resizeTargetCol;
+            const finalWidth = this.grid.dimensions.getColWidth(col);
+
+            if (finalWidth !== this.colOriginalWidthBeforeDrag) {
+                const command = new ResizeColCommand(
+                    this.grid,
+                    col,
+                    this.colOriginalWidthBeforeDrag,
+                    finalWidth
+                );
+
+                this.grid.commandController.executeCommand(command);
+            }
+        }
+
+         if (this.grid.rowResizeController.isRowResizing && this.grid.rowResizeController.resizeTargetRow !== null) {
+            const row = this.grid.rowResizeController.resizeTargetRow;
+            const finalHeight = this.grid.dimensions.getRowHeight(row);
+
+            if (finalHeight !== this.rowOriginalHeightBeforeDrag) {
+                const command = new ResizeRowCommand(
+                    this.grid,
+                    row,
+                    this.rowOriginalHeightBeforeDrag,
+                    finalHeight
+                );
+
+                this.grid.commandController.executeCommand(command);
+            }
+        }
+
         this.grid.colResizeController.isColResizing = false;
         this.grid.colResizeController.resizeTargetCol = null;
 
