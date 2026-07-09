@@ -1,4 +1,3 @@
-import type { CellEditor } from "./CellEditor.js";
 import type { ExcelGrid } from "./ExcelGrid.js";
 import { Formulas } from "./Formulas.js";
 

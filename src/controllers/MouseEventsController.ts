@@ -19,10 +19,10 @@ export class MouseEventsController {
 
 
     public handleMouseDown(e: MouseEvent): void {
+
         const rect = this.grid.container.getBoundingClientRect();
         const mouseX = e.clientX - rect.left + this.grid.scrollPane.scrollLeft;
         const mouseY = e.clientY - rect.top + this.grid.scrollPane.scrollTop;
-
 
         this.grid.rowResizeController.handleRowResize(e, mouseY);
 
@@ -45,7 +45,9 @@ export class MouseEventsController {
             this.selectedCellsStartCol = targetCol;
             this.isDraggingSelection = true;
             this.justDragged = false;
+
         }
+
     }
 
     public handleMouseMove(e: MouseEvent): void {
@@ -117,6 +119,7 @@ export class MouseEventsController {
             }
         }
 
+
         this.grid.scrollPane.style.cursor = cursorStyle;
     }
 
@@ -133,12 +136,11 @@ export class MouseEventsController {
             if (this.grid.editor.isFormulaEntered) {
                 const args = `${this.grid.dimensions.getExcelColumnLabel(this.selectedCellsStartCol)}${this.selectedCellsStartRow}:${this.grid.dimensions.getExcelColumnLabel(targetCol)}${targetRow}`
                 this.grid.editor.appendValue(args);
+                this.preventNextClick = true;
+                this.isDraggingSelection = false;
+                return;
             }
-            this.isDraggingSelection = false;
-
-            return;
         }
-
 
         if (this.grid.colResizeController.isColResizing && this.grid.colResizeController.resizeTargetCol !== null) {
             const col = this.grid.colResizeController.resizeTargetCol;
@@ -178,15 +180,17 @@ export class MouseEventsController {
         this.grid.rowResizeController.isRowResizing = false;
         this.grid.rowResizeController.resizeTargetRow = null;
 
-        // both will be true if user has dragged multiple cells.
         if (this.isDraggingSelection && this.justDragged) {
             this.preventNextClick = true;
         }
 
+        this.grid.editor.focusOnCell();
         this.isDraggingSelection = false;
     }
 
     public handleMouseClick(e: MouseEvent): void {
+
+
         if (this.preventNextClick) {
             this.preventNextClick = false;
             return;
@@ -219,7 +223,6 @@ export class MouseEventsController {
 
         const targetRow = this.grid.dimensions.getRowIndexAtY(clickY);
         const targetCol = this.grid.dimensions.getColIndexAtX(clickX);
-
         this.grid.inputController.commitInputChanges();
 
         // If clicking on an already-selected active cell, open the overlay editor
@@ -228,10 +231,12 @@ export class MouseEventsController {
             this.grid.selection.activeCol === targetCol
         ) {
             this.grid.inputController.positionInputOverlay(targetRow, targetCol);
+            this.grid.editor.focusOnCell();
             return;
         }
-
-        this.grid.selection.select(targetRow, targetCol);
+        if (!this.isDraggingSelection) {
+            this.grid.selection.select(targetRow, targetCol);
+        }
         this.grid.drawGrid();
     }
 

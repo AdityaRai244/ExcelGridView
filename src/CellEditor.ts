@@ -45,4 +45,8 @@ export class CellEditor {
         this.inputEle.focus();
     }
 
+    public focusOnCell(){
+        this.inputEle.focus();
+    }
+
 }

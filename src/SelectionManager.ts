@@ -6,6 +6,7 @@ export class SelectionManager {
     public activeCol: number | null = null;
     public selectedRanges: CellRange[] = [];
 
+
     public select(row: number, col: number): void {
         this.activeRow = row;
         this.activeCol = col;
@@ -13,7 +14,6 @@ export class SelectionManager {
     }
 
     public selectMultiple(startRow: number, startCol: number, endRow: number, endCol: number): void {
-        this.deselect();
         this.selectedRanges = [new CellRange(startRow, startCol, endRow, endCol)];
     }
 
@@ -29,9 +29,13 @@ export class SelectionManager {
         this.selectedRanges = [new CellRange(row, 1, row, totalCols)];
     }
 
-    public deselect(): void {
-        this.activeRow = null;
+    public deselectAll() : void{
         this.activeCol = null;
+        this.activeRow = null;
+        this.selectedRanges = [];
+    }
+
+    public deselectRange() : void{
         this.selectedRanges = [];
     }
 

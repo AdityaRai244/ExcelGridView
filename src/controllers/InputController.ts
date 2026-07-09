@@ -10,17 +10,20 @@ export class InputController {
     private activePopupIndex: number = 0;
 
     public commitInputChanges(): void {
-        console.log(this.formulas);
 
         const activeRow = this.grid.selection.activeRow;
         const activeCol = this.grid.selection.activeCol;
-
         if (this.grid.editor.isEditing() && activeRow !== null && activeCol !== null) {
-
             if (this.grid.editor.getValue().startsWith('=')) {
                 this.grid.formulaHandler.handleFormula();
+                this.grid.dataStore.setCellData(activeRow,activeCol, this.grid.editor.getValue());
+
+                this.grid.selection.deselectAll();
+                this.grid.editor.hide();
+                this.grid.drawGrid();
+
+
             } else {
-                // this.grid.dataStore.setCellData(activeRow, activeCol, this.grid.editor.getValue());
                 const command = new EditCellCommand(this.grid, activeRow, activeCol, this.grid.editor.getValue());
                 this.grid.commandController.executeCommand(command);
                 this.grid.editor.hide();
@@ -28,6 +31,7 @@ export class InputController {
             }
 
         }
+
     }
 
     public handleInputKeyUp(e: KeyboardEvent): void {
@@ -55,24 +59,24 @@ export class InputController {
                 e.preventDefault();
                 this.activePopupIndex = (this.activePopupIndex + 1) % filtered.length;
                 this.grid.formulaPopup.show(inputX, inputY, colWidth, rowHeight, filtered, this.activePopupIndex);
-                return; 
+                return;
             }
             else if (e.key === 'ArrowUp') {
                 e.preventDefault();
                 this.activePopupIndex = (this.activePopupIndex - 1 + filtered.length) % filtered.length;
                 this.grid.formulaPopup.show(inputX, inputY, colWidth, rowHeight, filtered, this.activePopupIndex);
-                return; 
+                return;
             }
             else if (e.key === 'Enter') {
                 if (filtered.length > 0) {
-                    e.preventDefault(); 
+                    e.preventDefault();
 
                     const selectedFormula = filtered[this.activePopupIndex];
-                    if(!selectedFormula) return;
+                    if (!selectedFormula) return;
                     this.grid.formulaPopup.handleFormulaClick(selectedFormula as Formulas);
 
                     this.isPopupActive = false;
-                    return; 
+                    return;
                 }
             }
             else {

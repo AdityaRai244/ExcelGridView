@@ -37,6 +37,7 @@ export class FormulaHandler {
             if (handler) {
                 const result = handler(formulaArgs ?? "");
                 this.grid.editor.setValue(result);
+
             } else {
                 console.error("Formula not supported.");
             }
@@ -85,10 +86,11 @@ export class FormulaHandler {
 
 
         let sum = 0;
-        console.log(fromRow, toRow);
         for (let i = fromRow; i <= toRow; i++) {
-
-            sum += parseInt(this.grid.dataStore.getCellData(i, fromColNumber));
+            const cellValue = this.grid.dataStore.getCellData(i, fromColNumber);
+            if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
+                sum += parseInt(this.grid.dataStore.getCellData(i, fromColNumber));
+            }
         }
 
         return sum.toString();
@@ -104,8 +106,10 @@ export class FormulaHandler {
         let min = Number.MAX_VALUE;
         console.log(fromRow, toRow);
         for (let i = fromRow; i <= toRow; i++) {
-
-            min = Math.min(min, parseInt(this.grid.dataStore.getCellData(i, fromColNumber)));
+            const cellValue = this.grid.dataStore.getCellData(i, fromColNumber);
+            if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
+                min = Math.min(min, parseInt(this.grid.dataStore.getCellData(i, fromColNumber)));
+            }
         }
 
 
@@ -122,10 +126,11 @@ export class FormulaHandler {
         let max = Number.MIN_VALUE;
         console.log(fromRow, toRow);
         for (let i = fromRow; i <= toRow; i++) {
-
-            max = Math.max(max, parseInt(this.grid.dataStore.getCellData(i, fromColNumber)));
+            const cellValue = this.grid.dataStore.getCellData(i, fromColNumber);
+            if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
+                max = Math.max(max, parseInt(this.grid.dataStore.getCellData(i, fromColNumber)));
+            }
         }
-
 
         return max.toString();
     }
@@ -158,16 +163,15 @@ export class FormulaHandler {
         const fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
         const toColNumber = this.grid.dimensions.getExcelColumnNumber(toColLabel);
 
-        let avg = 0;
+        let sum = 0;
         console.log(fromRow, toRow);
         for (let i = fromRow; i <= toRow; i++) {
-
-            avg += parseInt(this.grid.dataStore.getCellData(i, fromColNumber));
+            const cellValue = this.grid.dataStore.getCellData(i, fromColNumber);
+            if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
+                sum += parseInt(this.grid.dataStore.getCellData(i, fromColNumber));
+            }
         }
-        console.log(avg);
-
-        avg = avg / Math.abs((fromRow - toRow + 1));
-        console.log(avg);
+        const avg = sum / Math.abs((fromRow - toRow + 1));
 
         return avg.toString();
     }

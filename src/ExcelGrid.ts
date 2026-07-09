@@ -71,6 +71,7 @@ export class ExcelGrid {
     private init(): void {
         this.interaction.bindEvents();
         this.resizeCanvas();
+
     }
 
     public drawGrid(): void {
