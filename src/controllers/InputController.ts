@@ -16,8 +16,9 @@ export class InputController {
         if (this.grid.editor.isEditing() && activeRow !== null && activeCol !== null) {
             if (this.grid.editor.getValue().startsWith('=')) {
                 this.grid.formulaHandler.handleFormula();
-                this.grid.dataStore.setCellData(activeRow,activeCol, this.grid.editor.getValue());
 
+                const command = new EditCellCommand(this.grid, activeRow, activeCol, this.grid.editor.getValue());
+                this.grid.commandController.executeCommand(command);
                 this.grid.selection.deselectAll();
                 this.grid.editor.hide();
                 this.grid.drawGrid();

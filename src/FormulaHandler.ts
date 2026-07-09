@@ -72,8 +72,9 @@ export class FormulaHandler {
         const toRow = parseInt(toRowStr, 10);
 
         const fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
+        const toColNumber = this.grid.dimensions.getExcelColumnNumber(toColLabel);
 
-        return { fromRow, toRow, fromColNumber };
+        return { fromRow, toRow, fromColNumber, toColNumber };
     }
 
     private handleSum(args: string) {
@@ -83,13 +84,16 @@ export class FormulaHandler {
         const fromRow = format.fromRow;
         const toRow = format.toRow;
         const fromColNumber = format.fromColNumber;
+        const toColNumber = format.toColNumber;
 
 
         let sum = 0;
         for (let i = fromRow; i <= toRow; i++) {
-            const cellValue = this.grid.dataStore.getCellData(i, fromColNumber);
-            if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
-                sum += parseInt(this.grid.dataStore.getCellData(i, fromColNumber));
+            for (let j = fromColNumber; j <= toColNumber; j++) {
+                const cellValue = this.grid.dataStore.getCellData(i, j);
+                if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
+                    sum += parseInt(this.grid.dataStore.getCellData(i, j));
+                }
             }
         }
 
@@ -102,13 +106,16 @@ export class FormulaHandler {
         const fromRow = format.fromRow;
         const toRow = format.toRow;
         const fromColNumber = format.fromColNumber;
+        const toColNumber = format.toColNumber;
 
         let min = Number.MAX_VALUE;
-        console.log(fromRow, toRow);
+
         for (let i = fromRow; i <= toRow; i++) {
-            const cellValue = this.grid.dataStore.getCellData(i, fromColNumber);
-            if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
-                min = Math.min(min, parseInt(this.grid.dataStore.getCellData(i, fromColNumber)));
+            for (let j = fromColNumber; j <= toColNumber; j++) {
+                const cellValue = this.grid.dataStore.getCellData(i, j);
+                if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
+                    min = Math.min(min, parseInt(this.grid.dataStore.getCellData(i, j)));
+                }
             }
         }
 
@@ -122,53 +129,37 @@ export class FormulaHandler {
         const fromRow = format.fromRow;
         const toRow = format.toRow;
         const fromColNumber = format.fromColNumber;
+        const toColNumber = format.toColNumber;
 
         let max = Number.MIN_VALUE;
-        console.log(fromRow, toRow);
+
         for (let i = fromRow; i <= toRow; i++) {
-            const cellValue = this.grid.dataStore.getCellData(i, fromColNumber);
-            if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
-                max = Math.max(max, parseInt(this.grid.dataStore.getCellData(i, fromColNumber)));
+            for (let j = fromColNumber; j <= toColNumber; j++) {
+
+                const cellValue = this.grid.dataStore.getCellData(i, j);
+                if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
+                    max = Math.max(max, parseInt(this.grid.dataStore.getCellData(i, j)));
+                }
             }
         }
 
         return max.toString();
     }
     private handleAverage(args: string) {
-        const match = args.match(/^([A-Za-z0-9]+):([A-Za-z0-9]+)$/);
-        if (!match) return "Handling sum logic";
-
-        const from = match[1];
-        const to = match[2];
-        if (!from || !to) return "Handling sum logic";
-
-        const cellRegex = /^([A-Za-z]+)([0-9]+)$/;
-        const fromMatch = from.match(cellRegex);
-        const toMatch = to.match(cellRegex);
-
-        if (!fromMatch || !toMatch) return "Handling sum logic";
-
-        const fromColLabel = fromMatch[1];
-        const fromRowStr = fromMatch[2];
-        const toColLabel = toMatch[1];
-        const toRowStr = toMatch[2];
-
-        if (!fromColLabel || !fromRowStr || !toColLabel || !toRowStr) {
-            return "Handling sum logic";
-        }
-
-        const fromRow = parseInt(fromRowStr, 10);
-        const toRow = parseInt(toRowStr, 10);
-
-        const fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
-        const toColNumber = this.grid.dimensions.getExcelColumnNumber(toColLabel);
+        const format = this.matchFormat(args);
+        if (format === null) return;
+        const fromRow = format.fromRow;
+        const toRow = format.toRow;
+        const fromColNumber = format.fromColNumber;
+        const toColNumber = format.toColNumber;
 
         let sum = 0;
-        console.log(fromRow, toRow);
         for (let i = fromRow; i <= toRow; i++) {
-            const cellValue = this.grid.dataStore.getCellData(i, fromColNumber);
-            if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
-                sum += parseInt(this.grid.dataStore.getCellData(i, fromColNumber));
+            for (let j = fromColNumber; j <= toColNumber; j++) {
+                const cellValue = this.grid.dataStore.getCellData(i, j);
+                if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
+                    sum += parseInt(this.grid.dataStore.getCellData(i, j));
+                }
             }
         }
         const avg = sum / Math.abs((fromRow - toRow + 1));
@@ -182,12 +173,16 @@ export class FormulaHandler {
         const fromRow = format.fromRow;
         const toRow = format.toRow;
         const fromColNumber = format.fromColNumber;
+        const toColNumber = format.toColNumber;
 
         let count: number = 0;
         for (let i = fromRow; i <= toRow; i++) {
-            const cellValue = this.grid.dataStore.getCellData(i, fromColNumber);
-            if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
-                count++;
+            for (let j = fromColNumber; j <= toColNumber; j++) {
+
+                const cellValue = this.grid.dataStore.getCellData(i, j);
+                if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
+                    count++;
+                }
             }
         }
 
