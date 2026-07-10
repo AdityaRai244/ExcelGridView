@@ -85,4 +85,5 @@ canvas {
     gap: 10px;
     padding-right: 50px;
     height: 3vh;
+    display: none;
 }

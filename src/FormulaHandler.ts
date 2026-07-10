@@ -68,11 +68,23 @@ export class FormulaHandler {
             return null;
         }
 
-        const fromRow = parseInt(fromRowStr, 10);
-        const toRow = parseInt(toRowStr, 10);
+        let fromRow = parseInt(fromRowStr, 10);
+        let toRow = parseInt(toRowStr, 10);
 
-        const fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
-        const toColNumber = this.grid.dimensions.getExcelColumnNumber(toColLabel);
+        if(fromRow > toRow){
+            const temp = fromRow;
+            fromRow = toRow;
+            toRow = temp;
+        }
+
+        let fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
+        let toColNumber = this.grid.dimensions.getExcelColumnNumber(toColLabel);
+
+          if(fromColNumber > toColNumber){
+            const temp = fromColNumber;
+            fromColNumber = toColNumber;
+            toColNumber = temp;
+        }
 
         return { fromRow, toRow, fromColNumber, toColNumber };
     }
@@ -85,7 +97,7 @@ export class FormulaHandler {
         const toRow = format.toRow;
         const fromColNumber = format.fromColNumber;
         const toColNumber = format.toColNumber;
-
+        
 
         let sum = 0;
         for (let i = fromRow; i <= toRow; i++) {
@@ -162,7 +174,7 @@ export class FormulaHandler {
                 }
             }
         }
-        const avg = (sum / Math.abs((fromRow - toRow + 1))).toFixed(2);
+        const avg = (sum / Math.abs((toRow - fromRow + 1))).toFixed(2);
         return avg.toString();
     }
 

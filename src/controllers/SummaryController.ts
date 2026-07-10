@@ -8,13 +8,18 @@ export class SummaryController {
         const sum = this.grid.formulaHandler.handleSum(args);
         const avg = this.grid.formulaHandler.handleAverage(args);
         const count = this.grid.formulaHandler.handleCount(args);
-
+        this.divEle.style.display=`flex`;
         this.divEle.innerHTML = `
             <p class="summary-val"> Sum : ${sum}</p>   
             <p class="summary-val"> Average : ${avg}</p>   
             <p class="summary-val"> Count : ${count}</p>   
         `;
 
+    }
+
+    public resetSummary(){
+        this.divEle.style.display='none';
+        this.divEle.innerHTML = ``;
     }
 
 

@@ -136,7 +136,6 @@ export class MouseEventsController {
             const targetRow = this.grid.dimensions.getRowIndexAtY(mouseY);
             const targetCol = this.grid.dimensions.getColIndexAtX(mouseX);
             const args = `${this.grid.dimensions.getExcelColumnLabel(this.selectedCellsStartCol)}${this.selectedCellsStartRow}:${this.grid.dimensions.getExcelColumnLabel(targetCol)}${targetRow}`
-            // this.grid.summaryController.calculateSummary(args);
 
             if (this.grid.editor.isFormulaEntered) {
                 this.grid.editor.appendValue(args);
@@ -229,6 +228,7 @@ export class MouseEventsController {
         const targetCol = this.grid.dimensions.getColIndexAtX(clickX);
         this.grid.inputController.commitInputChanges();
 
+        this.grid.summaryController.resetSummary();
         // If clicking on an already-selected active cell, open the overlay editor
         if (
             this.grid.selection.activeRow === targetRow &&
