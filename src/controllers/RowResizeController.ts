@@ -11,7 +11,7 @@ export class RowResizeController {
         private grid: ExcelGrid,
     ) { }
 
-    public handleRowResize(e: MouseEvent, mouseX: any, mouseY: any) {
+    public handleRowResize(e: MouseEvent, mouseX: number, mouseY: number) {
 
         // which row is our mouse cursor on ? Total number of rows are 100,000 so that means we cannot use a simple loop. 
         // Using binary search we find which row is our candidate.

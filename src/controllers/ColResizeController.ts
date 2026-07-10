@@ -11,7 +11,7 @@ export class ColResizeController {
         private grid: ExcelGrid,
     ) { }
 
-    public handleColResize(e: MouseEvent, mouseX: any,mouseY : any) {
+    public handleColResize(e: MouseEvent, mouseX: number,mouseY : number) {
         // If the mouse is above col header (less then col height) and right of the row headers
         //  that means we are clicking and dragging on the column headers.
         if (mouseY - this.grid.scrollPane.scrollTop < this.grid.dimensions.COL_HEADER_HEIGHT && mouseX - this.grid.scrollPane.scrollLeft > this.grid.dimensions.ROW_HEADER_WIDTH) {

@@ -12,7 +12,7 @@ export class FormulaHandler {
     }
 
     public handleFormula() {
-        const formulaHandlers: Record<Formulas, (args: string) => any> = {
+        const formulaHandlers: Record<Formulas, (args: string) => string> = {
             [Formulas.Sum]: (args) => this.handleSum(args),
             [Formulas.Min]: (args) => this.handleMin(args),
             [Formulas.Max]: (args) => this.handleMax(args),
@@ -92,7 +92,7 @@ export class FormulaHandler {
     public handleSum(args: string) {
 
         const format = this.matchFormat(args);
-        if (format === null) return;
+        if (format === null) return "0";
         const fromRow = format.fromRow;
         const toRow = format.toRow;
         const fromColNumber = format.fromColNumber;
@@ -114,7 +114,7 @@ export class FormulaHandler {
 
     private handleMin(args: string) {
         const format = this.matchFormat(args);
-        if (format === null) return;
+        if (format === null) return "0";
         const fromRow = format.fromRow;
         const toRow = format.toRow;
         const fromColNumber = format.fromColNumber;
@@ -137,7 +137,7 @@ export class FormulaHandler {
 
     private handleMax(args: string) {
         const format = this.matchFormat(args);
-        if (format === null) return;
+        if (format === null) return "0";
         const fromRow = format.fromRow;
         const toRow = format.toRow;
         const fromColNumber = format.fromColNumber;
@@ -159,7 +159,7 @@ export class FormulaHandler {
     }
     public handleAverage(args: string) {
         const format = this.matchFormat(args);
-        if (format === null) return;
+        if (format === null) return "0";
         const fromRow = format.fromRow;
         const toRow = format.toRow;
         const fromColNumber = format.fromColNumber;
@@ -180,7 +180,7 @@ export class FormulaHandler {
 
     public handleCount(args: string) {
         const format = this.matchFormat(args);
-        if (format === null) return;
+        if (format === null) return "0";
         const fromRow = format.fromRow;
         const toRow = format.toRow;
         const fromColNumber = format.fromColNumber;
