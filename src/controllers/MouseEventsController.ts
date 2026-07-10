@@ -24,7 +24,7 @@ export class MouseEventsController {
         const mouseX = e.clientX - rect.left + this.grid.scrollPane.scrollLeft;
         const mouseY = e.clientY - rect.top + this.grid.scrollPane.scrollTop;
 
-        this.grid.rowResizeController.handleRowResize(e, mouseY);
+        this.grid.rowResizeController.handleRowResize(e, mouseX, mouseY);
 
         this.grid.colResizeController.handleColResize(e, mouseX, mouseY);
 

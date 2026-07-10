@@ -64,7 +64,7 @@ export class ExcelGrid {
         this.scrollController = new ScrollController(this);
 
         this.init();
-        seedSpreadsheetData(this.dataStore);
+        seedSpreadsheetData(this.dataStore,this);
         this.drawGrid();
     }
 
