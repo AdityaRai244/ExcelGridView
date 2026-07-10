@@ -77,7 +77,7 @@ export class FormulaHandler {
         return { fromRow, toRow, fromColNumber, toColNumber };
     }
 
-    private handleSum(args: string) {
+    public handleSum(args: string) {
 
         const format = this.matchFormat(args);
         if (format === null) return;
@@ -145,7 +145,7 @@ export class FormulaHandler {
 
         return max.toString();
     }
-    private handleAverage(args: string) {
+    public handleAverage(args: string) {
         const format = this.matchFormat(args);
         if (format === null) return;
         const fromRow = format.fromRow;
@@ -162,12 +162,11 @@ export class FormulaHandler {
                 }
             }
         }
-        const avg = sum / Math.abs((fromRow - toRow + 1));
-
+        const avg = (sum / Math.abs((fromRow - toRow + 1))).toFixed(2);
         return avg.toString();
     }
 
-    private handleCount(args: string) {
+    public handleCount(args: string) {
         const format = this.matchFormat(args);
         if (format === null) return;
         const fromRow = format.fromRow;

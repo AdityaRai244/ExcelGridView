@@ -14,6 +14,7 @@ import { CellController } from "./controllers/CellController.js";
 import { MouseEventsController } from "./controllers/MouseEventsController.js";
 import { ScrollController } from "./controllers/ScrollController.js";
 import { CommandManager } from "./command/CommandManager.js";
+import { SummaryController } from "./controllers/SummaryController.js";
 
 export class ExcelGrid {
 
@@ -31,6 +32,7 @@ export class ExcelGrid {
     public scrollContent = document.getElementById('scrollContent') as HTMLDivElement;
     public cellInput = document.getElementById('cellInput') as HTMLInputElement;
     public popup = document.getElementById('popup') as HTMLDivElement;
+    public summaryBar = document.getElementById('summary-bar') as HTMLDivElement;
     
 
     public viewportWidth = 0;
@@ -47,7 +49,7 @@ export class ExcelGrid {
     public cellController : CellController;
     public mouseEventsController : MouseEventsController
     public scrollController : ScrollController
-
+    public summaryController : SummaryController
 
     constructor() {
 
@@ -62,6 +64,8 @@ export class ExcelGrid {
         this.cellController = new CellController(this);
         this.mouseEventsController = new MouseEventsController(this);
         this.scrollController = new ScrollController(this);
+        console.log(this.summaryBar,this.popup);
+        this.summaryController = new SummaryController(this.summaryBar,this);
 
         this.init();
         seedSpreadsheetData(this.dataStore,this);

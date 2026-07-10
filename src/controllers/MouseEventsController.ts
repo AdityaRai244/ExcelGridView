@@ -132,9 +132,10 @@ export class MouseEventsController {
         if (this.justDragged) {
             const targetRow = this.grid.dimensions.getRowIndexAtY(mouseY);
             const targetCol = this.grid.dimensions.getColIndexAtX(mouseX);
+            const args = `${this.grid.dimensions.getExcelColumnLabel(this.selectedCellsStartCol)}${this.selectedCellsStartRow}:${this.grid.dimensions.getExcelColumnLabel(targetCol)}${targetRow}`
+            this.grid.summaryController.calculateSummary(args);
 
             if (this.grid.editor.isFormulaEntered) {
-                const args = `${this.grid.dimensions.getExcelColumnLabel(this.selectedCellsStartCol)}${this.selectedCellsStartRow}:${this.grid.dimensions.getExcelColumnLabel(targetCol)}${targetRow}`
                 this.grid.editor.appendValue(args);
                 this.preventNextClick = true;
                 this.isDraggingSelection = false;
