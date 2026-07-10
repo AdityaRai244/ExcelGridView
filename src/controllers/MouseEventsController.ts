@@ -95,6 +95,9 @@ export class MouseEventsController {
                 this.justDragged = true;
             }
             this.grid.selection.selectMultiple(this.selectedCellsStartRow, this.selectedCellsStartCol, targetRow, targetCol);
+            const args = `${this.grid.dimensions.getExcelColumnLabel(this.selectedCellsStartCol)}${this.selectedCellsStartRow}:${this.grid.dimensions.getExcelColumnLabel(targetCol)}${targetRow}`
+            this.grid.summaryController.calculateSummary(args);
+
             requestAnimationFrame(() => this.grid.drawGrid());
             return;
         }
@@ -133,7 +136,7 @@ export class MouseEventsController {
             const targetRow = this.grid.dimensions.getRowIndexAtY(mouseY);
             const targetCol = this.grid.dimensions.getColIndexAtX(mouseX);
             const args = `${this.grid.dimensions.getExcelColumnLabel(this.selectedCellsStartCol)}${this.selectedCellsStartRow}:${this.grid.dimensions.getExcelColumnLabel(targetCol)}${targetRow}`
-            this.grid.summaryController.calculateSummary(args);
+            // this.grid.summaryController.calculateSummary(args);
 
             if (this.grid.editor.isFormulaEntered) {
                 this.grid.editor.appendValue(args);
