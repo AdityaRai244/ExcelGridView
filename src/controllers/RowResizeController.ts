@@ -20,7 +20,7 @@ export class RowResizeController {
         const rowHeight = this.grid.dimensions.getRowHeight(rowCandidate);
         const rowBottomY = rowY + rowHeight;
         // if the cursor is around 5px of the bottom of the row that means we are expanding the row.
-        if (Math.abs(mouseY - rowBottomY) <= 5) {
+        if (Math.abs(mouseY - rowBottomY) <= this.grid.dimensions.CURSOR_PROMIXITY) {
             this.isRowResizing = true;
             this.resizeTargetRow = rowCandidate;
             this.rowResizeStartMouseY = e.clientY;
@@ -31,7 +31,7 @@ export class RowResizeController {
             return;
         }
         // Resize row if close to top border of candidate (previous row's bottom border)
-        else if (rowCandidate > 1 && Math.abs(mouseY - rowY) <= 5) {
+        else if (rowCandidate > 1 && Math.abs(mouseY - rowY) <= this.grid.dimensions.CURSOR_PROMIXITY) {
             this.isRowResizing = true;
             this.resizeTargetRow = rowCandidate - 1;
             this.rowResizeStartMouseY = e.clientY;

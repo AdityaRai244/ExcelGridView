@@ -19,7 +19,7 @@ export class ColResizeController {
             const colX = this.grid.dimensions.getColXPosition(colCandidate);
             const colWidth = this.grid.dimensions.getColWidth(colCandidate);
             // if the cursor is around 5px of the right side of the col that means we are expanding the col.
-            if (Math.abs(mouseX - (colX + colWidth)) <= 5) {
+            if (Math.abs(mouseX - (colX + colWidth)) <= this.grid.dimensions.CURSOR_PROMIXITY) {
                 this.isColResizing = true;
                 this.resizeTargetCol = colCandidate;
                 this.colResizeStartMouseX = e.clientX;
@@ -29,7 +29,7 @@ export class ColResizeController {
                 e.preventDefault();
                 return;
             }
-            else if (colCandidate > 1 && Math.abs(mouseX - colX) <= 5) {
+            else if (colCandidate > 1 && Math.abs(mouseX - colX) <= this.grid.dimensions.CURSOR_PROMIXITY) {
                 // If the cursor is 5px from the left of the current column 
                 // that means we are expanding the previous column. 
                 // (because the left border of the current column is the right border of the previous column)

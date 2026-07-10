@@ -8,6 +8,8 @@ export class GridDimensions {
     public readonly DEFAULT_ROW_HEIGHT: number = 28;
     public readonly DEFAULT_COL_WIDTH: number = 100;
 
+    public readonly CURSOR_PROMIXITY : number = 5;
+
     private rowStore: Map<number, number> = new Map();
     private colStore: Map<number, number> = new Map();
 

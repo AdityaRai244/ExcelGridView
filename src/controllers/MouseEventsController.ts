@@ -106,7 +106,7 @@ export class MouseEventsController {
             const colX = this.grid.dimensions.getColXPosition(colCandidate);
             const colWidth = this.grid.dimensions.getColWidth(colCandidate);
 
-            if (Math.abs(mouseX - (colX + colWidth)) <= 5 || (colCandidate > 1 && Math.abs(mouseX - colX) <= 5)) {
+            if (Math.abs(mouseX - (colX + colWidth)) <= this.grid.dimensions.CURSOR_PROMIXITY || (colCandidate > 1 && Math.abs(mouseX - colX) <= this.grid.dimensions.CURSOR_PROMIXITY)) {
                 cursorStyle = 'col-resize';
             }
         } else if (mouseY > this.grid.dimensions.COL_HEADER_HEIGHT && mouseX < this.grid.dimensions.ROW_HEADER_WIDTH) {
@@ -114,7 +114,7 @@ export class MouseEventsController {
             const rowY = this.grid.dimensions.getRowYPosition(rowCandidate);
             const rowHeight = this.grid.dimensions.getRowHeight(rowCandidate);
             const rowBottomY = rowY + rowHeight;
-            if (Math.abs(mouseY - rowBottomY) <= 5 || (rowCandidate > 1 && Math.abs(mouseY - rowY) <= 5)) {
+            if (Math.abs(mouseY - rowBottomY) <= this.grid.dimensions.CURSOR_PROMIXITY || (rowCandidate > 1 && Math.abs(mouseY - rowY) <= this.grid.dimensions.CURSOR_PROMIXITY)) {
                 cursorStyle = 'row-resize';
             }
         }
