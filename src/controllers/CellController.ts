@@ -35,6 +35,8 @@ export class CellController {
         let newScrollLeft = this.grid.scrollPane.scrollLeft;
         let newScrollTop = this.grid.scrollPane.scrollTop;
 
+        console.log(cellTop, newScrollTop,viewportHeight);
+
         // Left border scroll correction
         if (cellLeft < this.grid.scrollPane.scrollLeft + this.grid.dimensions.ROW_HEADER_WIDTH) {
             newScrollLeft = cellLeft - this.grid.dimensions.ROW_HEADER_WIDTH;
@@ -46,14 +48,22 @@ export class CellController {
 
         // Bottom/Top border scroll correction
         if (cellTop < this.grid.scrollPane.scrollTop + this.grid.dimensions.COL_HEADER_HEIGHT) {
-            newScrollTop = cellTop - this.grid.dimensions.COL_HEADER_HEIGHT;
-        } else if (cellTop + rowHeight > this.grid.scrollPane.scrollTop + viewportHeight) {
-            newScrollTop = cellTop + rowHeight - viewportHeight;
+            newScrollTop = cellTop  - this.grid.dimensions.COL_HEADER_HEIGHT;
+            console.log({cellTop,scpTop :this.grid.scrollPane.scrollTop, chh: this.grid.dimensions.COL_HEADER_HEIGHT})
+        } else if (cellTop + rowHeight*5 > this.grid.scrollPane.scrollTop + viewportHeight) {
+            console.log("Etneterfd")
+            console.log({cellTop,rowHeight, viewportHeight,scpTop :this.grid.scrollPane.scrollTop, chh: this.grid.dimensions.COL_HEADER_HEIGHT})
+            newScrollTop = cellTop +  rowHeight*5  - viewportHeight;
+            console.log(newScrollTop,"ASdf");
         }
 
         if (newScrollLeft !== this.grid.scrollPane.scrollLeft) this.grid.scrollPane.scrollLeft = newScrollLeft;
-        if (newScrollTop !== this.grid.scrollPane.scrollTop) this.grid.scrollPane.scrollTop = newScrollTop;
+        if (newScrollTop !== this.grid.scrollPane.scrollTop){
+            this.grid.scrollPane.scrollTop = newScrollTop;
+        }
     }
+
+    
 
     public moveSelectedCell(e: KeyboardEvent) {
         const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
@@ -83,7 +93,7 @@ export class CellController {
         if (this.grid.selection.activeRow === null || this.grid.selection.activeCol === null || this.grid.editor.isEditing()) {
             return;
         }
-
+        e.preventDefault();
         if (e.key === 'ArrowRight') {
             this.grid.cellController.navigateCells(0, 1);
         } else if (e.key === 'ArrowLeft') {

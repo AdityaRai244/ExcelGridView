@@ -64,7 +64,6 @@ export class ExcelGrid {
         this.cellController = new CellController(this);
         this.mouseEventsController = new MouseEventsController(this);
         this.scrollController = new ScrollController(this);
-        console.log(this.summaryBar,this.popup);
         this.summaryController = new SummaryController(this.summaryBar,this);
 
         this.init();

@@ -13,7 +13,6 @@ export async function seedSpreadsheetData(dataStore: DataStore, grid : ExcelGrid
         console.time("JSON Fetch Time");
         const response = await fetch(JSON_FILE_URL);
         const records = await response.json();
-        console.timeEnd("JSON Fetch Time");
 
         if (!records || records.length === 0) {
             console.log("JSON file is empty. Generating 50,000 records...");

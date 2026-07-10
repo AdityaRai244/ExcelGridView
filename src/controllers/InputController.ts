@@ -38,7 +38,7 @@ export class InputController {
     public handleInputKeyUp(e: KeyboardEvent): void {
 
         if (this.grid.selection.activeCol === null || this.grid.selection.activeRow === null) return;
-
+        // e.preventDefault();
         const inputX = this.grid.dimensions.getColXPosition(this.grid.selection.activeCol) - this.grid.scrollPane.scrollLeft;
         const inputY = this.grid.dimensions.getRowYPosition(this.grid.selection.activeRow) - this.grid.scrollPane.scrollTop;
         const colWidth = this.grid.dimensions.getColWidth(this.grid.selection.activeCol);
