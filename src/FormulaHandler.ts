@@ -44,7 +44,6 @@ export class FormulaHandler {
         }
     }
 
-
     private matchFormat(args: string) {
         const match = args.match(/^([A-Za-z0-9]+):([A-Za-z0-9]+)$/);
         if (!match) return null;
@@ -71,7 +70,7 @@ export class FormulaHandler {
         let fromRow = parseInt(fromRowStr, 10);
         let toRow = parseInt(toRowStr, 10);
 
-        if(fromRow > toRow){
+        if (fromRow > toRow) {
             const temp = fromRow;
             fromRow = toRow;
             toRow = temp;
@@ -80,7 +79,7 @@ export class FormulaHandler {
         let fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
         let toColNumber = this.grid.dimensions.getExcelColumnNumber(toColLabel);
 
-          if(fromColNumber > toColNumber){
+        if (fromColNumber > toColNumber) {
             const temp = fromColNumber;
             fromColNumber = toColNumber;
             toColNumber = temp;
@@ -97,7 +96,7 @@ export class FormulaHandler {
         const toRow = format.toRow;
         const fromColNumber = format.fromColNumber;
         const toColNumber = format.toColNumber;
-        
+
 
         let sum = 0;
         for (let i = fromRow; i <= toRow; i++) {
@@ -166,15 +165,18 @@ export class FormulaHandler {
         const toColNumber = format.toColNumber;
 
         let sum = 0;
+        let numericCount = 0;
         for (let i = fromRow; i <= toRow; i++) {
             for (let j = fromColNumber; j <= toColNumber; j++) {
                 const cellValue = this.grid.dataStore.getCellData(i, j);
                 if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
                     sum += parseInt(this.grid.dataStore.getCellData(i, j));
+                    numericCount++;
                 }
             }
         }
-        const avg = (sum / Math.abs((toRow - fromRow + 1))).toFixed(2);
+        if (numericCount === 0) return "0";
+        const avg = (sum / numericCount).toFixed(2);
         return avg.toString();
     }
 
