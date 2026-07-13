@@ -87,3 +87,7 @@ canvas {
     height: 3vh;
     display: none;
 }
+
+input{
+    outline: none;
+}

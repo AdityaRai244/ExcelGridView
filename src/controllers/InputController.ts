@@ -14,6 +14,8 @@ export class InputController {
         const activeRow = this.grid.selection.activeRow;
         const activeCol = this.grid.selection.activeCol;
         if (this.grid.editor.isEditing() && activeRow !== null && activeCol !== null) {
+
+
             if (this.grid.editor.getValue().startsWith('=')) {
                 this.grid.formulaHandler.handleFormula();
 
@@ -93,7 +95,10 @@ export class InputController {
                 this.isPopupActive = true;
             }
         } else if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
             this.commitInputChanges();
+            this.grid.editor.hide();
             this.grid.scrollPane.focus();
             this.grid.drawGrid();
             this.isPopupActive = false;
@@ -103,6 +108,21 @@ export class InputController {
             this.grid.drawGrid();
             this.isPopupActive = false;
 
+        }
+    }
+
+    public startEditing(e: KeyboardEvent): void {
+        if (this.grid.editor.isEditing()) return;
+         if (e.key === 'Enter') {
+            e.preventDefault();
+            if (
+                this.grid.selection.activeRow &&
+                this.grid.selection.activeCol
+            ) {
+                this.grid.inputController.positionInputOverlay(this.grid.selection.activeRow, this.grid.selection.activeCol);
+                this.grid.editor.focusOnCell();
+                return;
+            }
         }
     }
 
