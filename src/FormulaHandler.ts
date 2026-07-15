@@ -11,13 +11,13 @@ export class FormulaHandler {
         this.grid = grid;
     }
 
-    public handleFormula() {
+    public handleFormula(test: boolean) {
         const formulaHandlers: Record<Formulas, (args: string) => string> = {
-            [Formulas.Sum]: (args) => this.handleSum(args),
-            [Formulas.Min]: (args) => this.handleMin(args),
-            [Formulas.Max]: (args) => this.handleMax(args),
-            [Formulas.Average]: (args) => this.handleAverage(args),
-            [Formulas.Count]: (args) => this.handleCount(args),
+            [Formulas.Sum]: (args) => this.handleSum(args, test),
+            [Formulas.Min]: (args) => this.handleMin(args, test),
+            [Formulas.Max]: (args) => this.handleMax(args, test),
+            [Formulas.Average]: (args) => this.handleAverage(args, test),
+            [Formulas.Count]: (args) => this.handleCount(args, test),
         };
 
         let value = this.grid.editor.getValue();
@@ -33,9 +33,9 @@ export class FormulaHandler {
             ) as Formulas;
 
             const handler = formulaHandlers[extractedName];
-
             if (handler) {
                 const result = handler(formulaArgs ?? "");
+
                 this.grid.editor.setValue(result);
 
             } else {
@@ -44,7 +44,7 @@ export class FormulaHandler {
         }
     }
 
-    private matchFormat(args: string) {
+    private matchFormat(args: string, test: boolean) {
         const match = args.match(/^([A-Za-z0-9]+):([A-Za-z0-9]+)$/);
         if (!match) return null;
 
@@ -76,8 +76,15 @@ export class FormulaHandler {
             toRow = temp;
         }
 
-        let fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
-        let toColNumber = this.grid.dimensions.getExcelColumnNumber(toColLabel);
+        let fromColNumber;
+        let toColNumber;
+        if (test) {
+            fromColNumber = this.getExcelColumnNumberTest(fromColLabel);
+            toColNumber = this.getExcelColumnNumberTest(toColLabel);
+        } else {
+            fromColNumber = this.grid.dimensions.getExcelColumnNumber(fromColLabel);
+            toColNumber = this.grid.dimensions.getExcelColumnNumber(toColLabel);
+        }
 
         if (fromColNumber > toColNumber) {
             const temp = fromColNumber;
@@ -88,9 +95,10 @@ export class FormulaHandler {
         return { fromRow, toRow, fromColNumber, toColNumber };
     }
 
-    public handleSum(args: string) {
+    public handleSum(args: string, test = false) {
 
-        const format = this.matchFormat(args);
+        const format = this.matchFormat(args, test);
+
         if (format === null) return "0";
         const fromRow = format.fromRow;
         const toRow = format.toRow;
@@ -101,18 +109,84 @@ export class FormulaHandler {
         let sum = 0;
         for (let i = fromRow; i <= toRow; i++) {
             for (let j = fromColNumber; j <= toColNumber; j++) {
+
                 const cellValue = this.grid.dataStore.getCellData(i, j);
-                if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
-                    sum += parseInt(this.grid.dataStore.getCellData(i, j));
+                if (cellValue !== null && cellValue.trim() !== '') {
+                    const numValue = Number(cellValue);
+
+                    if (!isNaN(numValue)) {
+                        sum += Number(cellValue);
+                    }
                 }
+
+
             }
         }
 
         return sum.toString();
     }
 
-    private handleMin(args: string) {
-        const format = this.matchFormat(args);
+    private matchFormatTest(args: string) {
+        const match = args.match(/^([A-Za-z0-9]+):([A-Za-z0-9]+)$/);
+        if (!match) return null;
+
+        const from = match[1];
+        const to = match[2];
+        if (!from || !to) return null;
+
+        const cellRegex = /^([A-Za-z]+)([0-9]+)$/;
+        const fromMatch = from.match(cellRegex);
+        const toMatch = to.match(cellRegex);
+
+        if (!fromMatch || !toMatch) return null;
+
+        const fromColLabel = fromMatch[1];
+        const fromRowStr = fromMatch[2];
+        const toColLabel = toMatch[1];
+        const toRowStr = toMatch[2];
+
+        if (!fromColLabel || !fromRowStr || !toColLabel || !toRowStr) {
+            return null;
+        }
+
+        let fromRow = parseInt(fromRowStr, 10);
+        let toRow = parseInt(toRowStr, 10);
+
+        if (fromRow > toRow) {
+            const temp = fromRow;
+            fromRow = toRow;
+            toRow = temp;
+        }
+
+        let fromColNumber = this.getExcelColumnNumberTest(fromColLabel);
+        let toColNumber = this.getExcelColumnNumberTest(toColLabel);
+
+        if (fromColNumber > toColNumber) {
+            const temp = fromColNumber;
+            fromColNumber = toColNumber;
+            toColNumber = temp;
+        }
+
+        return { fromRow, toRow, fromColNumber, toColNumber };
+    }
+
+    public getExcelColumnNumberTest(label: string): number {
+        let col = 0;
+
+        const cleanLabel = label.toUpperCase();
+        for (let i = 0; i < cleanLabel.length; i++) {
+            const charValue = cleanLabel.charCodeAt(i) - 65 + 1;
+            col = col * 26 + charValue;
+        }
+
+        return col;
+    }
+
+
+    private handleMin(args: string, test = false) {
+        const format = this.matchFormat(args, test);
+
+
         if (format === null) return "0";
         const fromRow = format.fromRow;
         const toRow = format.toRow;
@@ -124,8 +198,12 @@ export class FormulaHandler {
         for (let i = fromRow; i <= toRow; i++) {
             for (let j = fromColNumber; j <= toColNumber; j++) {
                 const cellValue = this.grid.dataStore.getCellData(i, j);
-                if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
-                    min = Math.min(min, parseInt(this.grid.dataStore.getCellData(i, j)));
+                if (cellValue !== null && cellValue.trim() !== '') {
+                    const numValue = Number(cellValue);
+
+                    if (!isNaN(numValue)) {
+                        min = Math.min(min, numValue);
+                    }
                 }
             }
         }
@@ -134,8 +212,12 @@ export class FormulaHandler {
         return min.toString();
     }
 
-    private handleMax(args: string) {
-        const format = this.matchFormat(args);
+    private handleMax(args: string, test = false) {
+
+        const format = this.matchFormat(args, test);
+
+
+
         if (format === null) return "0";
         const fromRow = format.fromRow;
         const toRow = format.toRow;
@@ -148,16 +230,25 @@ export class FormulaHandler {
             for (let j = fromColNumber; j <= toColNumber; j++) {
 
                 const cellValue = this.grid.dataStore.getCellData(i, j);
-                if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
-                    max = Math.max(max, parseInt(this.grid.dataStore.getCellData(i, j)));
+
+                if (cellValue !== null && cellValue.trim() !== '') {
+                    const numValue = Number(cellValue);
+
+                    if (!isNaN(numValue)) {
+                        max = Math.max(max, numValue);
+                    }
                 }
             }
         }
 
         return max.toString();
     }
-    public handleAverage(args: string) {
-        const format = this.matchFormat(args);
+
+    public handleAverage(args: string, test = false) {
+
+        const format = this.matchFormat(args, test);
+
+
         if (format === null) return "0";
         const fromRow = format.fromRow;
         const toRow = format.toRow;
@@ -169,9 +260,13 @@ export class FormulaHandler {
         for (let i = fromRow; i <= toRow; i++) {
             for (let j = fromColNumber; j <= toColNumber; j++) {
                 const cellValue = this.grid.dataStore.getCellData(i, j);
-                if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
-                    sum += parseInt(this.grid.dataStore.getCellData(i, j));
-                    numericCount++;
+                if (cellValue !== null && cellValue.trim() !== '') {
+                    const numValue = Number(cellValue);
+
+                    if (!isNaN(numValue)) {
+                        sum += numValue;
+                        numericCount++;
+                    }
                 }
             }
         }
@@ -180,8 +275,13 @@ export class FormulaHandler {
         return avg.toString();
     }
 
-    public handleCount(args: string) {
-        const format = this.matchFormat(args);
+
+    public handleCount(args: string, test = false) {
+
+        const format = this.matchFormat(args, test);
+
+
+
         if (format === null) return "0";
         const fromRow = format.fromRow;
         const toRow = format.toRow;
@@ -191,10 +291,14 @@ export class FormulaHandler {
         let count: number = 0;
         for (let i = fromRow; i <= toRow; i++) {
             for (let j = fromColNumber; j <= toColNumber; j++) {
-
                 const cellValue = this.grid.dataStore.getCellData(i, j);
-                if (cellValue !== null && cellValue.trim() !== '' && !isNaN(Number(cellValue))) {
-                    count++;
+
+                if (cellValue !== null && cellValue.trim() !== '') {
+                    const numValue = Number(cellValue);
+
+                    if (!isNaN(numValue)) {
+                        count++;
+                    }
                 }
             }
         }
@@ -202,8 +306,6 @@ export class FormulaHandler {
 
         return count.toString();
     }
-
-
 
 
 }

@@ -17,5 +17,4 @@ export class InteractionHandler {
         window.addEventListener('keydown', (e) => this.grid.cellController.moveSelectedCell(e));
     }
 
-
 }
