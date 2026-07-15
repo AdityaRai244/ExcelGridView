@@ -4,7 +4,7 @@ import type { ExcelGrid } from "./ExcelGrid.js";
 const firstNames = ["Raj", "Amit", "Priya", "Neha", "Vijay", "Anjali", "Suresh", "Rohan", "Deepak", "Kiran"];
 const lastNames = ["Solanki", "Sharma", "Verma", "Patel", "Mehra", "Joshi", "Gupta", "Rao", "Singh", "Das"];
 
-const JSON_FILE_URL = "./src/data.json";
+const JSON_FILE_URL = "./src/data/data.json";
 
 export async function seedSpreadsheetData(dataStore: DataStore, grid : ExcelGrid) {
     dataStore.clear();
