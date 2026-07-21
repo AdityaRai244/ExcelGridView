@@ -128,7 +128,8 @@ export class FormulaHandler {
         const fromColNumber = format.fromColNumber;
         const toColNumber = format.toColNumber;
 
-        let min = Number.MAX_VALUE;
+        let min = Infinity;
+        let hasValidNumber = false;
 
         for (let i = fromRow; i <= toRow; i++) {
             for (let j = fromColNumber; j <= toColNumber; j++) {
@@ -138,13 +139,14 @@ export class FormulaHandler {
 
                     if (!isNaN(numValue)) {
                         min = Math.min(min, numValue);
+                        hasValidNumber = true;
                     }
                 }
             }
         }
 
 
-        return min.toString();
+        return hasValidNumber ? min.toString() : "0";
     }
 
     public handleMax(args: string) {
@@ -157,8 +159,9 @@ export class FormulaHandler {
         const fromColNumber = format.fromColNumber;
         const toColNumber = format.toColNumber;
 
-        let max = Number.MIN_VALUE;
-
+        let max = -Infinity;
+        let hasValidNumber = false;
+        
         for (let i = fromRow; i <= toRow; i++) {
             for (let j = fromColNumber; j <= toColNumber; j++) {
 
@@ -169,12 +172,13 @@ export class FormulaHandler {
 
                     if (!isNaN(numValue)) {
                         max = Math.max(max, numValue);
+                        hasValidNumber = true;
                     }
                 }
             }
         }
 
-        return max.toString();
+        return hasValidNumber ? max.toString() : "0";
     }
 
     public handleAverage(args: string) {
@@ -207,7 +211,6 @@ export class FormulaHandler {
         const avg = (sum / numericCount).toFixed(2);
         return avg.toString();
     }
-
 
     public handleCount(args: string) {
 

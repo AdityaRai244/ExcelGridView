@@ -61,7 +61,7 @@ Every user action that modifies state (editing a cell, resizing a row/column) is
 When an action occurs, it is passed to the CommandManager, which executes it and pushes it to an undoStack. When Ctrl+Z is pressed, the manager pops the command, calls its undo() method, and pushes it to a redoStack.
  
 ## Test Cases Covered
-For all the formulas ( SUM,COUNT,MIN,MAX,Avg )
+Unit tests for all the formulas ( SUM,COUNT,MIN,MAX,Avg )
 - Should handle range of positive integers and decimals
 - Should handle negative numbers and zero correctly 
 - Should treat empty cells or text values as 0 during calculation

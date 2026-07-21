@@ -1,3 +1,4 @@
+import { ResizeRowCommand } from "../command/ResizeRowCommand.js";
 import type { ExcelGrid } from "../ExcelGrid.js";
 
 export class RowResizeController {
@@ -45,6 +46,39 @@ export class RowResizeController {
                 return;
             }
 
+        }
+    }
+
+    public handleRowResizeMove(e: MouseEvent) {
+        // if we are resizing the row
+        if (this.grid.rowResizeController.isRowResizing && this.grid.rowResizeController.resizeTargetRow !== null) {
+            // how much has the row moved ? current position - old position.
+            //  Set that as the new height for the row in real time.
+            const deltaY = e.clientY - this.grid.rowResizeController.rowResizeStartMouseY;
+            const newHeight = this.grid.rowResizeController.rowResizeStartHeight + deltaY;
+
+            this.grid.dimensions.setRowHeight(this.grid.rowResizeController.resizeTargetRow, newHeight);
+            this.grid.scrollContent.style.height = `${this.grid.dimensions.getTotalGridHeight()}px`;
+            requestAnimationFrame(() => this.grid.drawGrid());
+            return;
+        }
+    }
+
+    public handleRowResizeUp() {
+        if (this.isRowResizing && this.resizeTargetRow !== null) {
+            const row = this.resizeTargetRow;
+            const finalHeight = this.grid.dimensions.getRowHeight(row);
+
+            if (finalHeight !== this.grid.mouseEventsController.rowOriginalHeightBeforeDrag) {
+                const command = new ResizeRowCommand(
+                    this.grid,
+                    row,
+                    this.grid.mouseEventsController.rowOriginalHeightBeforeDrag,
+                    finalHeight
+                );
+
+                this.grid.commandController.executeCommand(command);
+            }
         }
     }
 
